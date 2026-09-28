@@ -13,6 +13,7 @@ import JudgingSimulator from "./pages/JudgingSimulator";
 import MainLayout from "./layouts/MainLayout";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import EventManagement from "./pages/EventManagement";
+import ParticipantPortal from "./pages/ParticipantPortal";
 
 function RoleRoute({ allowedRoles, children }) {
   const { user, isAuthenticated, loading } = useAuth();
@@ -55,6 +56,15 @@ function App() {
               element={
                 <RoleRoute allowedRoles={["admin", "organizer"]}>
                   <EventManagement />
+                </RoleRoute>
+              }
+            />
+
+            <Route
+              path="/participant"
+              element={
+                <RoleRoute allowedRoles={["participant"]}>
+                  <ParticipantPortal />
                 </RoleRoute>
               }
             />

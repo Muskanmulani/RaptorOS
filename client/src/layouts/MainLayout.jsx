@@ -9,6 +9,7 @@ import {
   FileSearch,
   Gauge,
   CalendarDays,
+  Users,
   LogOut
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -38,6 +39,13 @@ function MainLayout() {
       code: "03",
       icon: FolderKanban,
       roles: ["admin", "organizer", "judge", "participant"]
+    },
+    {
+      to: "/participant",
+      label: "Participant",
+      code: "04",
+      icon: Users,
+      roles: ["participant"]
     },
     {
       to: "/judge",
