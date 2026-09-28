@@ -8,6 +8,7 @@ import {
   Activity,
   FileSearch,
   Gauge,
+  CalendarDays,
   LogOut
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -25,37 +26,44 @@ function MainLayout() {
       roles: ["admin", "organizer"]
     },
     {
+      to: "/events",
+      label: "Events",
+      code: "02",
+      icon: CalendarDays,
+      roles: ["admin", "organizer"]
+    },
+    {
       to: "/gallery",
       label: "Projects",
-      code: "02",
+      code: "03",
       icon: FolderKanban,
       roles: ["admin", "organizer", "judge", "participant"]
     },
     {
       to: "/judge",
       label: "Judging",
-      code: "03",
+      code: "04",
       icon: Gavel,
       roles: ["judge"]
     },
     {
       to: "/control-room",
       label: "Control",
-      code: "04",
+      code: "05",
       icon: ShieldCheck,
       roles: ["admin", "organizer"]
     },
     {
       to: "/ledger",
       label: "Ledger",
-      code: "05",
+      code: "06",
       icon: FileSearch,
       roles: ["admin", "organizer"]
     },
     {
       to: "/judge/simulator",
       label: "Simulator",
-      code: "06",
+      code: "07",
       icon: Gauge,
       roles: ["admin", "organizer", "judge"]
     }

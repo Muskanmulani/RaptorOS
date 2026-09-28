@@ -12,9 +12,14 @@ import DecisionLedger from "./pages/DecisionLedger";
 import JudgingSimulator from "./pages/JudgingSimulator";
 import MainLayout from "./layouts/MainLayout";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import EventManagement from "./pages/EventManagement";
 
 function RoleRoute({ allowedRoles, children }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -41,6 +46,15 @@ function App() {
               element={
                 <RoleRoute allowedRoles={["admin", "organizer"]}>
                   <Dashboard />
+                </RoleRoute>
+              }
+            />
+
+            <Route
+              path="/events"
+              element={
+                <RoleRoute allowedRoles={["admin", "organizer"]}>
+                  <EventManagement />
                 </RoleRoute>
               }
             />

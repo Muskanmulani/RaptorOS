@@ -5,7 +5,7 @@ const AuthContext = createContext(null);
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const storedToken = localStorage.getItem("raptoros_token");
     const storedUser = localStorage.getItem("raptoros_user");
@@ -21,6 +21,8 @@ function AuthProvider({ children }) {
         localStorage.removeItem("raptoros_user");
       }
     }
+
+    setLoading(false);
   }, []);
 
   const login = (newToken, newUser) => {
@@ -45,6 +47,7 @@ function AuthProvider({ children }) {
         user,
         token,
         isAuthenticated: Boolean(token),
+        loading,
         login,
         logout
       }}
