@@ -4,15 +4,49 @@ import {
   FolderKanban,
   Gavel,
   ShieldCheck,
-  Activity
+  Activity,
+  FileSearch,
+  Gauge
 } from "lucide-react";
 
 function MainLayout() {
   const links = [
-    { to: "/dashboard", label: "Command", code: "01", icon: LayoutDashboard },
-    { to: "/gallery", label: "Projects", code: "02", icon: FolderKanban },
-    { to: "/judge", label: "Judging", code: "03", icon: Gavel },
-    { to: "/control-room", label: "Control", code: "04", icon: ShieldCheck }
+    {
+      to: "/dashboard",
+      label: "Command",
+      code: "01",
+      icon: LayoutDashboard
+    },
+    {
+      to: "/gallery",
+      label: "Projects",
+      code: "02",
+      icon: FolderKanban
+    },
+    {
+      to: "/judge",
+      label: "Judging",
+      code: "03",
+      icon: Gavel
+    },
+    {
+      to: "/control-room",
+      label: "Control",
+      code: "04",
+      icon: ShieldCheck
+    },
+    {
+      to: "/ledger",
+      label: "Ledger",
+      code: "05",
+      icon: FileSearch
+    },
+    {
+      to: "/judge/simulator",
+      label: "Simulator",
+      code: "06",
+      icon: Gauge
+    }
   ];
 
   return (
@@ -25,7 +59,10 @@ function MainLayout() {
             </div>
 
             <div>
-              <h1 className="text-lg font-bold tracking-tight">RaptorOS</h1>
+              <h1 className="text-lg font-bold tracking-tight">
+                RaptorOS
+              </h1>
+
               <p className="text-[10px] tracking-[0.2em] text-white/30">
                 EVENT OPERATING SYSTEM
               </p>
@@ -71,7 +108,10 @@ function MainLayout() {
 
           <div className="mt-3 flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.6)]" />
-            <span className="text-xs text-white/50">Operational</span>
+
+            <span className="text-xs text-white/50">
+              Operational
+            </span>
           </div>
         </div>
       </aside>
