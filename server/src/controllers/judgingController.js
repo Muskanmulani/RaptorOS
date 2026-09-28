@@ -647,7 +647,7 @@ const getProjectJudgingData = async (req, res) => {
           '[]'
         ) AS criteria
        FROM rubrics r
-       JOIN projects p ON p.id = $2
+       JOIN projects p ON p.id = $1
        JOIN teams t ON t.id = p.team_id
        LEFT JOIN rubric_criteria rc ON rc.rubric_id = r.id
        WHERE r.event_id = t.event_id

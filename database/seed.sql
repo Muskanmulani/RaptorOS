@@ -4,35 +4,35 @@ VALUES
     '00000000-0000-0000-0000-000000000001',
     'Raptor Admin',
     'admin@raptoros.local',
-    'TEMP_ADMIN_HASH',
+    '$2b$12$JYgLBhfpFGfDYqT8geAlhORQCB5rjgky95NmICbnITGfAvqEVXTWa',
     'admin'
 ),
 (
     '00000000-0000-0000-0000-000000000002',
     'Alex Organizer',
     'organizer@raptoros.local',
-    'TEMP_ORGANIZER_HASH',
+    '$2b$12$JYgLBhfpFGfDYqT8geAlhORQCB5rjgky95NmICbnITGfAvqEVXTWa',
     'organizer'
 ),
 (
     '00000000-0000-0000-0000-000000000003',
     'Maya Judge',
     'judge1@raptoros.local',
-    'TEMP_JUDGE_HASH',
+    '$2b$12$JYgLBhfpFGfDYqT8geAlhORQCB5rjgky95NmICbnITGfAvqEVXTWa',
     'judge'
 ),
 (
     '00000000-0000-0000-0000-000000000004',
     'Arjun Judge',
     'judge2@raptoros.local',
-    'TEMP_JUDGE_HASH',
+    '$2b$12$JYgLBhfpFGfDYqT8geAlhORQCB5rjgky95NmICbnITGfAvqEVXTWa',
     'judge'
 ),
 (
     '00000000-0000-0000-0000-000000000005',
     'Demo Participant',
     'participant@raptoros.local',
-    'TEMP_PARTICIPANT_HASH',
+    '$2b$12$JYgLBhfpFGfDYqT8geAlhORQCB5rjgky95NmICbnITGfAvqEVXTWa',
     'participant'
 );
 

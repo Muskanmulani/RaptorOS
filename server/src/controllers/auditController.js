@@ -11,7 +11,7 @@ const getAuditLogs = async (req, res) => {
       params.push(eventId);
       conditions.push(`
         (
-          al.entity_id = $${params.length}
+          al.entity_id::text = $${params.length}
           OR al.metadata->>'eventId' = $${params.length}
         )
       `);

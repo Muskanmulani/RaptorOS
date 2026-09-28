@@ -246,10 +246,10 @@ function ProjectReview() {
 
     try {
       const payload = {
-        projectId: Number(projectId),
-        rubricId: Number(data.rubric.id),
+        projectId: projectId,
+        rubricId: data.rubric.id,
         scores: criteria.map((criterion) => ({
-          criterionId: Number(criterion.id),
+          criterionId: criterion.id,
           rawScore: Number(scores[criterion.id])
         }))
       };

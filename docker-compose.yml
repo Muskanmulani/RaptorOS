@@ -26,6 +26,7 @@ services:
       NODE_ENV: development
       PORT: 5000
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/raptoros
+      JWT_SECRET: raptoros-demo-jwt-secret-2026
     ports:
       - "5000:5000"
     depends_on:
@@ -34,3 +35,4 @@ services:
 
 volumes:
   postgres_data:
+
