@@ -1,4 +1,5 @@
-import { Outlet, NavLink } from "react-router-dom";
+
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -6,10 +7,15 @@ import {
   ShieldCheck,
   Activity,
   FileSearch,
-  Gauge
+  Gauge,
+  LogOut
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 function MainLayout() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
   const links = [
     {
       to: "/dashboard",
@@ -48,6 +54,11 @@ function MainLayout() {
       icon: Gauge
     }
   ];
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-[#11100e] text-[#f4efe6]">
@@ -113,6 +124,27 @@ function MainLayout() {
               Operational
             </span>
           </div>
+
+          {user && (
+            <div className="mt-5 border-t border-white/10 pt-4">
+              <p className="text-[10px] tracking-[0.2em] text-white/20">
+                CURRENT SESSION
+              </p>
+
+              <div className="mt-2 truncate text-xs text-white/60">
+                {user.email || user.name}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="mt-3 flex w-full items-center gap-2 border border-white/10 px-3 py-2 text-xs text-white/40 transition hover:border-orange-500/40 hover:bg-orange-500/[0.05] hover:text-orange-400"
+              >
+                <LogOut size={14} />
+                <span>Sign out</span>
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
