@@ -20,39 +20,27 @@ const calculateNormalization = async (eventId) => {
     [eventId]
   );
 
-  const judgeScores = new Map();
-
-  for (const row of result.rows) {
-    if (!judgeScores.has(row.judge_id)) {
-      judgeScores.set(row.judge_id, []);
-    }
-
-    judgeScores.get(row.judge_id).push(Number(row.weighted_score));
-  }
-
-  const judgeStats = new Map();
-
-  for (const [judgeId, scores] of judgeScores.entries()) {
-    const mean =
-      scores.reduce((sum, score) => sum + score, 0) / scores.length;
-
-    const variance =
-      scores.reduce(
-        (sum, score) => sum + Math.pow(score - mean, 2),
-        0
-      ) / scores.length;
-
-    const standardDeviation = Math.sqrt(variance);
-
-    judgeStats.set(judgeId, {
-      mean,
-      standardDeviation
-    });
-  }
-
+  const judgeProjectScores = new Map();
   const projectJudgments = new Map();
 
   for (const row of result.rows) {
+    const weightedScore = Number(row.weighted_score);
+
+    if (!judgeProjectScores.has(row.judge_id)) {
+      judgeProjectScores.set(row.judge_id, new Map());
+    }
+
+    const judgeProjects = judgeProjectScores.get(row.judge_id);
+
+    if (!judgeProjects.has(row.project_id)) {
+      judgeProjects.set(row.project_id, 0);
+    }
+
+    judgeProjects.set(
+      row.project_id,
+      judgeProjects.get(row.project_id) + weightedScore
+    );
+
     if (!projectJudgments.has(row.project_id)) {
       projectJudgments.set(row.project_id, {
         projectId: row.project_id,
@@ -71,7 +59,35 @@ const calculateNormalization = async (eventId) => {
       });
     }
 
-    project.judges.get(row.judge_id).score += Number(row.weighted_score);
+    project.judges.get(row.judge_id).score += weightedScore;
+  }
+
+  const judgeStats = new Map();
+
+  for (const [judgeId, projectScores] of judgeProjectScores.entries()) {
+    const scores = Array.from(projectScores.values());
+
+    const mean =
+      scores.length === 0
+        ? 0
+        : scores.reduce((sum, score) => sum + score, 0) /
+          scores.length;
+
+    const variance =
+      scores.length === 0
+        ? 0
+        : scores.reduce(
+            (sum, score) => sum + Math.pow(score - mean, 2),
+            0
+          ) / scores.length;
+
+    const standardDeviation = Math.sqrt(variance);
+
+    judgeStats.set(judgeId, {
+      mean,
+      standardDeviation,
+      projectsJudged: scores.length
+    });
   }
 
   const projects = [];
@@ -82,12 +98,14 @@ const calculateNormalization = async (eventId) => {
     for (const judge of project.judges.values()) {
       const stats = judgeStats.get(judge.judgeId);
 
-      let normalizedScore = judge.score;
+      let normalizedScore = 50;
 
       if (stats && stats.standardDeviation > 0) {
         normalizedScore =
           50 +
-          ((judge.score - stats.mean) / stats.standardDeviation) * 10;
+          ((judge.score - stats.mean) /
+            stats.standardDeviation) *
+            10;
       }
 
       normalizedScore = Math.max(
@@ -136,13 +154,15 @@ const calculateNormalization = async (eventId) => {
   return {
     eventId,
     method: "Judge Z-Score Normalization",
+    formula: "50 + ((judgeProjectScore - judgeMean) / judgeStandardDeviation) * 10",
     judgeStatistics: Array.from(judgeStats.entries()).map(
       ([judgeId, stats]) => ({
         judgeId,
         mean: Number(stats.mean.toFixed(3)),
         standardDeviation: Number(
           stats.standardDeviation.toFixed(3)
-        )
+        ),
+        projectsJudged: stats.projectsJudged
       })
     ),
     projects
