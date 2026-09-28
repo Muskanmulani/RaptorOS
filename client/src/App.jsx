@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -11,7 +11,21 @@ import ScoreAnatomy from "./pages/ScoreAnatomy";
 import DecisionLedger from "./pages/DecisionLedger";
 import JudgingSimulator from "./pages/JudgingSimulator";
 import MainLayout from "./layouts/MainLayout";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+
+function RoleRoute({ allowedRoles, children }) {
+  const { user, isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!allowedRoles.includes(user?.role)) {
+    return <Navigate to="/gallery" replace />;
+  }
+
+  return children;
+}
 
 function App() {
   return (
@@ -22,24 +36,79 @@ function App() {
           <Route path="/login" element={<Login />} />
 
           <Route element={<MainLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/dashboard"
+              element={
+                <RoleRoute allowedRoles={["admin", "organizer"]}>
+                  <Dashboard />
+                </RoleRoute>
+              }
+            />
+
             <Route path="/gallery" element={<Gallery />} />
-            <Route path="/judge" element={<JudgingDesk />} />
+
+            <Route
+              path="/judge"
+              element={
+                <RoleRoute allowedRoles={["judge"]}>
+                  <JudgingDesk />
+                </RoleRoute>
+              }
+            />
+
             <Route
               path="/judge/project/:projectId"
-              element={<ProjectReview />}
+              element={
+                <RoleRoute allowedRoles={["judge"]}>
+                  <ProjectReview />
+                </RoleRoute>
+              }
             />
+
             <Route
               path="/judge/project/:projectId/explain"
-              element={<ScoreAnatomy />}
+              element={
+                <RoleRoute allowedRoles={["judge"]}>
+                  <ScoreAnatomy />
+                </RoleRoute>
+              }
             />
+
             <Route
               path="/judge/simulator"
-              element={<JudgingSimulator />}
+              element={
+                <RoleRoute allowedRoles={["admin", "organizer", "judge"]}>
+                  <JudgingSimulator />
+                </RoleRoute>
+              }
             />
-            <Route path="/control-room" element={<ControlRoom />} />
-            <Route path="/fairness" element={<FairnessLab />} />
-            <Route path="/ledger" element={<DecisionLedger />} />
+
+            <Route
+              path="/control-room"
+              element={
+                <RoleRoute allowedRoles={["admin", "organizer"]}>
+                  <ControlRoom />
+                </RoleRoute>
+              }
+            />
+
+            <Route
+              path="/fairness"
+              element={
+                <RoleRoute allowedRoles={["admin", "organizer"]}>
+                  <FairnessLab />
+                </RoleRoute>
+              }
+            />
+
+            <Route
+              path="/ledger"
+              element={
+                <RoleRoute allowedRoles={["admin", "organizer"]}>
+                  <DecisionLedger />
+                </RoleRoute>
+              }
+            />
           </Route>
         </Routes>
       </BrowserRouter>

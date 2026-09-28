@@ -1,42 +1,34 @@
+import { useEffect, useState } from "react";
 import CommandHeader from "../components/CommandHeader";
 import { ArrowUpRight, Search } from "lucide-react";
+import api from "../services/api";
 
 function Gallery() {
-  const projects = [
-    {
-      id: "001",
-      title: "EcoRoute",
-      team: "Team Nova",
-      category: "SUSTAINABILITY",
-      status: "JUDGING",
-      score: "8.42"
-    },
-    {
-      id: "002",
-      title: "PulseGrid",
-      team: "Team Vector",
-      category: "HEALTH",
-      status: "SUBMITTED",
-      score: "—"
-    },
-    {
-      id: "003",
-      title: "CivicLens",
-      team: "Team Orbit",
-      category: "CIVIC TECH",
-      status: "JUDGING",
-      score: "7.91"
-    },
-    {
-      id: "004",
-      title: "FarmSense",
-      team: "Team Terra",
-      category: "AGRI TECH",
-      status: "SUBMITTED",
-      score: "—"
-    }
-  ];
+  const [projects, setProjects] = useState([]);
 
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const response = await api.get("/projects?limit=50");
+
+        setProjects(
+          (response.data?.projects || []).map((project, index) => ({
+            id: String(index + 1).padStart(3, "0"),
+            title: project.title,
+            team: project.team_name || project.team || "—",
+            category: project.category || "—",
+            status: project.status || "SUBMITTED",
+            score: project.score ?? "—"
+          }))
+        );
+      } catch (error) {
+        console.error("Failed to load projects:", error);
+        setProjects([]);
+      }
+    };
+
+    loadProjects();
+  }, []);
   return (
     <div>
       <CommandHeader />
@@ -108,7 +100,7 @@ function Gallery() {
       </section>
 
       <div className="mt-6 flex justify-between text-[10px] tracking-[0.2em] text-white/25">
-        <span>04 PROJECTS DISPLAYED</span>
+        <span>{String(projects.length).padStart(2, "0")} PROJECTS DISPLAYED</span>
         <span>PUBLIC GALLERY</span>
       </div>
     </div>

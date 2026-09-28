@@ -14,6 +14,9 @@ import {
 function Dashboard() {
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [judgeData, setJudgeData] = useState([]);
+  const [assignmentData, setAssignmentData] = useState([]);
+  const [projectData, setProjectData] = useState([]);
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -36,8 +39,18 @@ function Dashboard() {
           return;
         }
 
-        const response = await api.get(`/health/${eventId}`);
-        setHealth(response.data);
+        const [healthResponse, judgesResponse, assignmentsResponse, projectsResponse] =
+          await Promise.all([
+            api.get(`/health/${eventId}`),
+            api.get("/judging/judges"),
+            api.get(`/judging/assignments?eventId=${eventId}`),
+            api.get(`/projects?eventId=${eventId}&limit=50`)
+          ]);
+
+        setHealth(healthResponse.data);
+        setJudgeData(judgesResponse.data?.judges || []);
+        setAssignmentData(assignmentsResponse.data?.assignments || []);
+        setProjectData(projectsResponse.data?.projects || []);
       } catch (error) {
         console.error("Dashboard load error:", error);
       } finally {
@@ -48,16 +61,12 @@ function Dashboard() {
     loadDashboard();
   }, []);
 
-  const totalProjects = health?.submissions?.totalProjects ?? 24;
-  const submittedProjects = health?.submissions?.submittedProjects ?? 18;
-  const submissionPercentage =
-    health?.submissions?.submissionPercentage ??
-    (totalProjects === 0
-      ? 0
-      : Math.round((submittedProjects / totalProjects) * 100));
+  const totalProjects = health?.submissions?.totalProjects ?? 0;
+  const submittedProjects = health?.submissions?.submittedProjects ?? 0;
+  const submissionPercentage = health?.submissions?.submissionPercentage ?? 0;
 
-  const activeJudges = health?.judging?.activeJudges ?? 8;
-  const judgingCompletion = health?.judging?.judgingCompletion ?? 62;
+  const activeJudges = health?.judging?.activeJudges ?? 0;
+  const judgingCompletion = health?.judging?.judgingCompletion ?? 0;
   const activeConflicts = health?.integrity?.activeConflicts ?? 0;
 
   const stats = [
@@ -116,63 +125,32 @@ function Dashboard() {
     }
   ];
 
-  const judges = [
-    {
-      id: "J-01",
-      name: "Maya",
-      load: 82,
-      projects: 8,
-      status: "ACTIVE"
-    },
-    {
-      id: "J-02",
-      name: "Arjun",
-      load: 64,
-      projects: 6,
-      status: "ACTIVE"
-    },
-    {
-      id: "J-03",
-      name: "Nadia",
-      load: 48,
-      projects: 5,
-      status: "ACTIVE"
-    },
-    {
-      id: "J-04",
-      name: "Rohan",
-      load: 31,
-      projects: 3,
-      status: "IDLE"
-    }
-  ];
+  const judges = judgeData.map((judge) => {
+    const judgeAssignments = assignmentData.filter(
+      (assignment) => assignment.judge_id === judge.id
+    );
 
-  const projects = [
-    {
-      id: "P-014",
-      name: "EcoRoute",
-      score: "8.42",
-      coverage: "3/3"
-    },
-    {
-      id: "P-021",
-      name: "PulseGrid",
+    return {
+      id: judge.id,
+      name: judge.name,
+      load: 0,
+      projects: judgeAssignments.length,
+      status: "ACTIVE"
+    };
+  });
+
+  const projects = projectData.map((project) => {
+    const projectAssignments = assignmentData.filter(
+      (assignment) => assignment.project_id === project.id
+    );
+
+    return {
+      id: project.id,
+      name: project.title,
       score: "—",
-      coverage: "2/3"
-    },
-    {
-      id: "P-027",
-      name: "CivicLens",
-      score: "7.91",
-      coverage: "3/3"
-    },
-    {
-      id: "P-031",
-      name: "FarmSense",
-      score: "—",
-      coverage: "1/3"
-    }
-  ];
+      coverage: `${projectAssignments.length}/${activeJudges}`
+    };
+  });
 
   const submissionFlow = health?.submissions?.submissionPercentage ?? 87;
   const judgingCoverage = health?.judging?.judgingCompletion ?? 74;
@@ -839,49 +817,36 @@ function Dashboard() {
                 </circle>
               </svg>
 
-              <div className="absolute right-[10%] top-[8%] flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center border border-orange-500/20 bg-[#151310]">
-                  <FolderKanban size={14} className="text-orange-500" />
-                </div>
+              {projects.slice(0, 4).map((project, index) => {
+                const positions = ["8%", "33%", "58%", "83%"];
 
-                <div>
-                  <p className="text-xs text-white/60">EcoRoute</p>
-                  <p className="font-mono text-[8px] text-white/20">P-014</p>
-                </div>
-              </div>
+                return (
+                  <div
+                    key={project.id}
+                    className={`absolute right-[10%] flex items-center gap-3 ${
+                      index === 3 ? "opacity-50" : ""
+                    }`}
+                    style={{ top: positions[index] }}
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center border border-orange-500/20 bg-[#151310]">
+                      <FolderKanban
+                        size={14}
+                        className="text-orange-500"
+                      />
+                    </div>
 
-              <div className="absolute right-[10%] top-[33%] flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center border border-orange-500/20 bg-[#151310]">
-                  <FolderKanban size={14} className="text-orange-500" />
-                </div>
+                    <div>
+                      <p className="text-xs text-white/60">
+                        {project.name}
+                      </p>
 
-                <div>
-                  <p className="text-xs text-white/60">PulseGrid</p>
-                  <p className="font-mono text-[8px] text-white/20">P-021</p>
-                </div>
-              </div>
-
-              <div className="absolute right-[10%] top-[58%] flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center border border-orange-500/20 bg-[#151310]">
-                  <FolderKanban size={14} className="text-orange-500" />
-                </div>
-
-                <div>
-                  <p className="text-xs text-white/60">CivicLens</p>
-                  <p className="font-mono text-[8px] text-white/20">P-027</p>
-                </div>
-              </div>
-
-              <div className="absolute right-[10%] top-[83%] flex items-center gap-3 opacity-50">
-                <div className="flex h-9 w-9 items-center justify-center border border-white/10 bg-[#151310]">
-                  <FolderKanban size={14} className="text-white/30" />
-                </div>
-
-                <div>
-                  <p className="text-xs text-white/40">FarmSense</p>
-                  <p className="font-mono text-[8px] text-white/15">P-031</p>
-                </div>
-              </div>
+                      <p className="font-mono text-[8px] text-white/20">
+                        {project.id}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
 
               <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                 <div

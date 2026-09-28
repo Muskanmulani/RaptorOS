@@ -21,39 +21,45 @@ function MainLayout() {
       to: "/dashboard",
       label: "Command",
       code: "01",
-      icon: LayoutDashboard
+      icon: LayoutDashboard,
+      roles: ["admin", "organizer"]
     },
     {
       to: "/gallery",
       label: "Projects",
       code: "02",
-      icon: FolderKanban
+      icon: FolderKanban,
+      roles: ["admin", "organizer", "judge", "participant"]
     },
     {
       to: "/judge",
       label: "Judging",
       code: "03",
-      icon: Gavel
+      icon: Gavel,
+      roles: ["judge"]
     },
     {
       to: "/control-room",
       label: "Control",
       code: "04",
-      icon: ShieldCheck
+      icon: ShieldCheck,
+      roles: ["admin", "organizer"]
     },
     {
       to: "/ledger",
       label: "Ledger",
       code: "05",
-      icon: FileSearch
+      icon: FileSearch,
+      roles: ["admin", "organizer"]
     },
     {
       to: "/judge/simulator",
       label: "Simulator",
       code: "06",
-      icon: Gauge
+      icon: Gauge,
+      roles: ["admin", "organizer", "judge"]
     }
-  ];
+  ].filter((link) => link.roles.includes(user?.role));
 
   const handleLogout = () => {
     logout();
