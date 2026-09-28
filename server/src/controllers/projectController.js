@@ -1,7 +1,9 @@
 const { query, pool } = require("../config/db");
+
 const {
   isDuplicateProject
 } = require("../services/duplicateDetectionService");
+
 const getTeamMembership = async (teamId, userId) => {
   const result = await query(
     `SELECT 1
@@ -14,6 +16,61 @@ const getTeamMembership = async (teamId, userId) => {
   return result.rows.length > 0;
 };
 
+const getTrackForEvent = async (trackId, eventId, client = null) => {
+  const database = client || { query };
+
+  const result = await database.query(
+    `SELECT id, name, description
+     FROM event_tracks
+     WHERE id = $1
+     AND event_id = $2`,
+    [trackId, eventId]
+  );
+
+  return result.rows[0] || null;
+};
+
+const validateTrackSelection = async (trackId, eventId, client = null) => {
+  const database = client || { query };
+
+  const tracksResult = await database.query(
+    `SELECT COUNT(*)::int AS count
+     FROM event_tracks
+     WHERE event_id = $1`,
+    [eventId]
+  );
+
+  const trackCount = tracksResult.rows[0].count;
+
+  if (trackCount === 0 && !trackId) {
+    return {
+      valid: true,
+      track: null
+    };
+  }
+
+  if (trackCount > 0 && !trackId) {
+    return {
+      valid: false,
+      message: "A project track is required for this event"
+    };
+  }
+
+  const track = await getTrackForEvent(trackId, eventId, client);
+
+  if (!track) {
+    return {
+      valid: false,
+      message: "Selected track does not belong to this event"
+    };
+  }
+
+  return {
+    valid: true,
+    track
+  };
+};
+
 const createProject = async (req, res) => {
   const client = await pool.connect();
 
@@ -24,12 +81,21 @@ const createProject = async (req, res) => {
       tagline,
       description,
       repositoryUrl,
-      demoUrl
+      demoUrl,
+      trackId
     } = req.body;
 
     if (!teamId || !title) {
       return res.status(400).json({
         message: "Team ID and project title are required"
+      });
+    }
+
+    const projectTitle = String(title).trim();
+
+    if (!projectTitle) {
+      return res.status(400).json({
+        message: "Project title is required"
       });
     }
 
@@ -75,6 +141,18 @@ const createProject = async (req, res) => {
       });
     }
 
+    const trackValidation = await validateTrackSelection(
+      trackId,
+      team.event_id,
+      client
+    );
+
+    if (!trackValidation.valid) {
+      return res.status(400).json({
+        message: trackValidation.message
+      });
+    }
+
     const existingProject = await client.query(
       `SELECT id
        FROM projects
@@ -90,7 +168,7 @@ const createProject = async (req, res) => {
 
     const duplicateCheck = await isDuplicateProject({
       eventId: team.event_id,
-      title,
+      title: projectTitle,
       description,
       repositoryUrl
     });
@@ -106,12 +184,21 @@ const createProject = async (req, res) => {
 
     const projectResult = await client.query(
       `INSERT INTO projects
-       (team_id, title, tagline, description, repository_url, demo_url)
-       VALUES ($1, $2, $3, $4, $5, $6)
+       (
+         team_id,
+         track_id,
+         title,
+         tagline,
+         description,
+         repository_url,
+         demo_url
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
       [
         teamId,
-        title.trim(),
+        trackId || null,
+        projectTitle,
         tagline || null,
         description || null,
         repositoryUrl || null,
@@ -140,7 +227,8 @@ const createProject = async (req, res) => {
         project.id,
         JSON.stringify({
           teamId,
-          eventId: team.event_id
+          eventId: team.event_id,
+          trackId: trackId || null
         })
       ]
     );
@@ -150,6 +238,7 @@ const createProject = async (req, res) => {
     res.status(201).json({
       message: "Project created",
       project,
+      track: trackValidation.track,
       submission: submissionResult.rows[0]
     });
   } catch (error) {
@@ -173,6 +262,7 @@ const getProject = async (req, res) => {
       `SELECT
         p.id,
         p.team_id,
+        p.track_id,
         p.title,
         p.tagline,
         p.description,
@@ -183,10 +273,13 @@ const getProject = async (req, res) => {
         t.name AS team_name,
         t.event_id,
         e.name AS event_name,
-        e.status AS event_status
+        e.status AS event_status,
+        et.name AS track_name,
+        et.description AS track_description
        FROM projects p
        JOIN teams t ON t.id = p.team_id
        JOIN events e ON e.id = t.event_id
+       LEFT JOIN event_tracks et ON et.id = p.track_id
        WHERE p.id = $1`,
       [id]
     );
@@ -250,6 +343,7 @@ const getProjects = async (req, res) => {
           OR p.tagline ILIKE $${params.length}
           OR p.description ILIKE $${params.length}
           OR t.name ILIKE $${params.length}
+          OR et.name ILIKE $${params.length}
         )
       `);
     }
@@ -303,6 +397,7 @@ const getProjects = async (req, res) => {
       `SELECT
         p.id,
         p.team_id,
+        p.track_id,
         p.title,
         p.tagline,
         p.description,
@@ -314,12 +409,15 @@ const getProjects = async (req, res) => {
         t.event_id,
         e.name AS event_name,
         e.status AS event_status,
+        et.name AS track_name,
+        et.description AS track_description,
         latest_submission.version AS latest_version,
         latest_submission.status AS latest_submission_status,
         latest_submission.submitted_at
        FROM projects p
        JOIN teams t ON t.id = p.team_id
        JOIN events e ON e.id = t.event_id
+       LEFT JOIN event_tracks et ON et.id = p.track_id
        LEFT JOIN LATERAL (
          SELECT
            s.version,
@@ -368,6 +466,9 @@ const getPublicProject = async (req, res) => {
         p.demo_url,
         p.created_at,
         p.updated_at,
+        p.track_id,
+        et.name AS track_name,
+        et.description AS track_description,
         t.id AS team_id,
         t.name AS team_name,
         e.id AS event_id,
@@ -378,6 +479,7 @@ const getPublicProject = async (req, res) => {
        FROM projects p
        JOIN teams t ON t.id = p.team_id
        JOIN events e ON e.id = t.event_id
+       LEFT JOIN event_tracks et ON et.id = p.track_id
        JOIN LATERAL (
          SELECT
            s.version,
@@ -420,13 +522,16 @@ const updateProject = async (req, res) => {
       tagline,
       description,
       repositoryUrl,
-      demoUrl
+      demoUrl,
+      trackId
     } = req.body;
 
     const projectResult = await query(
       `SELECT
         p.id,
         p.team_id,
+        p.track_id,
+        t.event_id,
         e.submission_deadline,
         e.status
        FROM projects p
@@ -443,6 +548,12 @@ const updateProject = async (req, res) => {
     }
 
     const project = projectResult.rows[0];
+
+    if (project.status === "completed") {
+      return res.status(400).json({
+        message: "This event has already been completed"
+      });
+    }
 
     if (new Date() > new Date(project.submission_deadline)) {
       return res.status(400).json({
@@ -461,6 +572,23 @@ const updateProject = async (req, res) => {
       });
     }
 
+    let validatedTrackId = project.track_id;
+
+    if (Object.prototype.hasOwnProperty.call(req.body, "trackId")) {
+      const trackValidation = await validateTrackSelection(
+        trackId,
+        project.event_id
+      );
+
+      if (!trackValidation.valid) {
+        return res.status(400).json({
+          message: trackValidation.message
+        });
+      }
+
+      validatedTrackId = trackId || null;
+    }
+
     const result = await query(
       `UPDATE projects
        SET
@@ -469,8 +597,9 @@ const updateProject = async (req, res) => {
          description = COALESCE($3, description),
          repository_url = COALESCE($4, repository_url),
          demo_url = COALESCE($5, demo_url),
+         track_id = $6,
          updated_at = CURRENT_TIMESTAMP
-       WHERE id = $6
+       WHERE id = $7
        RETURNING *`,
       [
         title ? title.trim() : null,
@@ -478,6 +607,7 @@ const updateProject = async (req, res) => {
         description,
         repositoryUrl,
         demoUrl,
+        validatedTrackId,
         id
       ]
     );
@@ -492,7 +622,8 @@ const updateProject = async (req, res) => {
         "project",
         id,
         JSON.stringify({
-          fields: Object.keys(req.body)
+          fields: Object.keys(req.body),
+          trackId: validatedTrackId
         })
       ]
     );
@@ -636,6 +767,7 @@ const submitProject = async (req, res) => {
       `SELECT
         p.id,
         p.team_id,
+        p.track_id,
         e.id AS event_id,
         e.submission_deadline,
         e.status
@@ -668,6 +800,18 @@ const submitProject = async (req, res) => {
     if (!isMember) {
       return res.status(403).json({
         message: "You are not a member of this project team"
+      });
+    }
+
+    const trackValidation = await validateTrackSelection(
+      project.track_id,
+      project.event_id,
+      client
+    );
+
+    if (!trackValidation.valid) {
+      return res.status(400).json({
+        message: trackValidation.message
       });
     }
 
@@ -718,6 +862,7 @@ const submitProject = async (req, res) => {
         JSON.stringify({
           projectId: id,
           eventId: project.event_id,
+          trackId: project.track_id,
           version: latest.version
         })
       ]

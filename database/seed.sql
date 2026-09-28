@@ -57,6 +57,66 @@ VALUES (
     '00000000-0000-0000-0000-000000000002'
 );
 
+INSERT INTO event_tracks (
+    id,
+    event_id,
+    name,
+    description
+)
+VALUES
+(
+    '11000000-0000-0000-0000-000000000001',
+    '10000000-0000-0000-0000-000000000001',
+    'AI & Machine Learning',
+    'Projects using artificial intelligence, machine learning, agents or intelligent systems.'
+),
+(
+    '11000000-0000-0000-0000-000000000002',
+    '10000000-0000-0000-0000-000000000001',
+    'Web & Full Stack',
+    'Web applications, full-stack products and developer platforms.'
+),
+(
+    '11000000-0000-0000-0000-000000000003',
+    '10000000-0000-0000-0000-000000000001',
+    'Social Impact',
+    'Technology projects focused on meaningful real-world and community impact.'
+);
+
+INSERT INTO event_prizes (
+    id,
+    event_id,
+    position,
+    name,
+    description,
+    amount
+)
+VALUES
+(
+    '12000000-0000-0000-0000-000000000001',
+    '10000000-0000-0000-0000-000000000001',
+    1,
+    'Grand Prize',
+    'Best overall project.',
+    800
+),
+(
+    '12000000-0000-0000-0000-000000000002',
+    '10000000-0000-0000-0000-000000000001',
+    2,
+    'Runner Up',
+    'Second place project.',
+    500
+),
+(
+    '12000000-0000-0000-0000-000000000003',
+    '10000000-0000-0000-0000-000000000001',
+    NULL,
+    'Best Innovation',
+    'Award for the most innovative solution.',
+    250
+);
+
 INSERT INTO teams (
     id,
     event_id,
@@ -79,6 +139,7 @@ VALUES (
 INSERT INTO projects (
     id,
     team_id,
+    track_id,
     title,
     tagline,
     description,
@@ -88,6 +149,7 @@ INSERT INTO projects (
 VALUES (
     '30000000-0000-0000-0000-000000000001',
     '20000000-0000-0000-0000-000000000001',
+    '11000000-0000-0000-0000-000000000002',
     'EcoRoute',
     'Smarter routes for greener cities',
     'A demo project showing how RaptorOS handles project submissions and judging.',

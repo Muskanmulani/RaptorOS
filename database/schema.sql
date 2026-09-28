@@ -29,6 +29,26 @@ CREATE TABLE IF NOT EXISTS events (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS event_tracks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (event_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS event_prizes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    position INTEGER,
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    amount DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (event_id, position)
+);
+
 CREATE TABLE IF NOT EXISTS teams (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
@@ -47,6 +67,7 @@ CREATE TABLE IF NOT EXISTS team_members (
 CREATE TABLE IF NOT EXISTS projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     team_id UUID UNIQUE NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    track_id UUID REFERENCES event_tracks(id) ON DELETE SET NULL,
     title VARCHAR(200) NOT NULL,
     tagline VARCHAR(300),
     description TEXT,
@@ -220,8 +241,17 @@ CREATE TABLE IF NOT EXISTS import_jobs (
     completed_at TIMESTAMP
 );
 
+CREATE INDEX IF NOT EXISTS idx_event_tracks_event
+ON event_tracks(event_id);
+
+CREATE INDEX IF NOT EXISTS idx_event_prizes_event
+ON event_prizes(event_id);
+
 CREATE INDEX IF NOT EXISTS idx_projects_team
 ON projects(team_id);
+
+CREATE INDEX IF NOT EXISTS idx_projects_track
+ON projects(track_id);
 
 CREATE INDEX IF NOT EXISTS idx_submissions_project
 ON submissions(project_id);
