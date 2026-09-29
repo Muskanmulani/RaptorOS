@@ -1,479 +1,374 @@
-# RaptorOS
+# 🦖 RaptorOS
 
-## Run. Judge. Ship.
+### Open-source, self-hostable hackathon management platform
 
-RaptorOS is an open-source, self-hostable hackathon operating system designed to manage the complete lifecycle of a hackathon — from event setup and team formation to project submissions, judge assignment, scoring, normalization, public discovery, auditing, and results.
+RaptorOS is a centralized hackathon management platform that manages the complete competition lifecycle — from **event creation and participant management to project submissions, judging, AI-assisted evidence analysis, community voting, auditability, and results**.
 
-Instead of treating a hackathon platform as a collection of forms and dashboards, RaptorOS provides an event control system focused on operational visibility and judging integrity.
+It is designed to give organizers, judges, and participants dedicated workflows while keeping the judging process structured, traceable, and human-controlled.
 
-## What RaptorOS Solves
+---
 
-Running a hackathon involves several interconnected systems:
+## ✨ What is RaptorOS?
 
-- Participant registration
-- Team formation
-- Project submission
-- Submission deadlines
-- Judge invitations
-- Judge assignment
-- Rubric-based scoring
-- Judge workload balancing
-- Conflict detection
-- Score normalization
-- Public voting
-- Comments
-- Audit trails
-- Results
-- Certificates and participation records
+Running a hackathon involves much more than collecting project submissions.
 
-RaptorOS brings these workflows into a single self-hostable platform.
+Organizers need to manage:
 
-## Core Capabilities
+* Events and schedules
+* Tracks and prizes
+* Participants and teams
+* Projects and submissions
+* Judge assignments
+* Rubrics and weighted criteria
+* Evaluation and score normalization
+* Community voting
+* Audit records
+* Certificates
+* Integrations and webhooks
 
-### Event Operations
+RaptorOS brings these workflows together in a single platform.
 
-- Event creation and configuration
-- Event dates and submission deadlines
-- Event status management
-- Team formation through invite codes
-- Project creation and submission versions
-- Deadline enforcement
-- Event health monitoring
+### Core workflow
 
-### Judging System
+```mermaid
+flowchart LR
+    A[Create Hackathon] --> B[Configure Event]
+    B --> C[Participants & Teams]
+    C --> D[Project Submission]
+    D --> E[Judge Assignment]
+    E --> F[Rubric-based Evaluation]
+    F --> G[JEV + Evidence Retrieval]
+    G --> H[Human Decision]
+    H --> I[Normalization]
+    I --> J[Results]
 
-- Judge accounts and invitations
-- Accepted-invitation enforcement
-- Judge-to-project assignments
-- Assignment workload balancing
-- Conflict detection
-- Configurable rubrics
-- Weighted scoring
-- Judge progress tracking
-- Score normalization
-- CSV result export
-- Judging simulation
+    D --> K[Community Voting]
+    K --> J
 
-### Judging Integrity
-
-- Judge/team conflict detection
-- Duplicate project detection
-- Audit trail for important actions
-- Raw score transparency
-- Normalized score transparency
-- Explain Score breakdown
-- Decision Ledger
-- Fairness monitoring
-
-### JEV / Raptor Intelligence
-
-RaptorOS includes a local evidence retrieval and judging-assistance layer.
-
-It can:
-
-- Index project descriptions and submitted evidence
-- Retrieve relevant project evidence
-- Analyze projects against rubric criteria
-- Provide criterion-level analysis
-- Surface evidence for human judges
-
-The system does not automatically make the final judging decision.
-
-Human judges remain responsible for submitted scores.
-
-### Public Participation
-
-- Public project gallery
-- Randomized project ordering
-- Community voting
-- Configurable voting windows
-- Hidden results during voting
-- Project comments
-- Vote rate limiting
-- Duplicate project protection
-
-### Platform Extensions
-
-RaptorOS also includes supporting platform capabilities:
-
-- Webhook configuration and delivery tracking
-- Signed judge participation records
-- Certificate generation and verification
-- Participant CSV import
-- Embeddable gallery widget
-- REST API endpoints for platform workflows
-
-## Architecture
-
-```text
-React Client
-     ↓
-Express API
-     ↓
-Application Services
-     ↓
-PostgreSQL
+    B --> L[Audit Ledger]
+    E --> L
+    F --> L
+    H --> L
 ```
 
-The application is divided into frontend, backend, service, and database layers.
+---
 
-For more information, see:
+## 🚀 Key Features
 
-- `ARCHITECTURE.md`
-- `DATA-MODEL.md`
-- `JUDGING.md`
+### 🏆 Event Management
 
-## Technology Stack
+* Create and manage hackathon events
+* Configure event dates
+* Configure event status
+* Create tracks
+* Define prizes
+* Seeded demo event for immediate exploration
+
+### 👥 Participant & Team Management
+
+* Participant authentication
+* Role-based access control
+* Create teams
+* Join teams using invite codes
+* View team information
+* Manage participant workflows
+
+### 📁 Project Management
+
+* Create and manage projects
+* Associate projects with teams
+* Assign projects to tracks
+* Submit project versions
+* Track submission status
+* Public project gallery
+* Repository and demo links
+
+### ⚖️ Structured Judging
+
+* Judge management
+* Project-to-judge assignments
+* Rubric configuration
+* Weighted judging criteria
+* Criterion-level scoring
+* Multiple judge evaluations
+* Judging completion tracking
+* Score normalization
+* Explain Score breakdown
+
+### 🔎 JEV — Judge Evaluation Verification
+
+RaptorOS includes a dedicated **Judge Evaluation Verification (JEV)** layer designed to assist judges with evidence-based evaluation.
+
+JEV can:
+
+* Retrieve evidence relevant to a judging criterion
+* Show evidence sources
+* Display evidence relevance
+* Identify potential evidence concerns
+* Provide context around an existing human score
+* Analyze individual criteria
+* Analyze the complete project
+* Keep the final decision with the human judge
+
+> **Human decision remains required. JEV is an assistive evaluation layer, not an autonomous judge.**
+
+---
+
+## 🧠 Retrieval-Augmented Evidence System
+
+RaptorOS implements a lightweight custom retrieval pipeline to support JEV.
+
+Project evidence can come from:
+
+* Project description
+* Project README / submitted content
+* Technology-stack information
+
+The retrieval pipeline works as follows:
+
+```mermaid
+flowchart TD
+    A[Project Evidence] --> B[Text Chunking]
+    B --> C[Tokenization]
+    C --> D[128-D Custom Embedding]
+    D --> E[In-memory Evidence Store]
+
+    F[Judging Criterion] --> G[Query Embedding]
+    G --> H[Cosine Similarity]
+    E --> H
+    H --> I[Top-K Relevant Evidence]
+    I --> J[JEV Analysis]
+    J --> K[Human Judge]
+```
+
+### How retrieval works
+
+1. Project evidence is divided into text chunks.
+2. Each chunk is converted into a normalized **128-dimensional custom embedding**.
+3. Embeddings are stored in an in-memory evidence store.
+4. A judging criterion is converted into the same embedding representation.
+5. Cosine similarity is calculated between the criterion query and indexed evidence.
+6. The highest-relevance evidence chunks are retrieved.
+7. JEV uses the retrieved evidence to generate criterion-specific observations and potential concerns.
+8. The judge reviews the evidence and makes the final decision.
+
+> **Implementation note:** RaptorOS currently uses a custom hashing-based embedding implementation and in-memory retrieval rather than an external embedding API or persistent vector database.
+
+---
+
+## 📊 Explain Score
+
+RaptorOS provides transparent score breakdowns so judges and organizers can understand how an evaluation was calculated.
+
+For each criterion, the system can show:
+
+* Criterion name
+* Weight
+* Raw score
+* Maximum score
+* Weighted contribution
+* Overall score
+
+For example:
+
+| Criterion       |   Weight | Raw Score | Contribution |
+| --------------- | -------: | --------: | -----------: |
+| Technical Depth |      30% |         8 |        24.00 |
+| Innovation      |      25% |         9 |        22.50 |
+| Impact          |      25% |         8 |        20.00 |
+| Execution       |      20% |         9 |        18.00 |
+| **Final Score** | **100%** |           |    **84.50** |
+
+This makes the scoring process easier to inspect and verify.
+
+---
+
+## 🗳️ Community Voting
+
+RaptorOS supports community voting for submitted projects.
+
+Features include:
+
+* Configurable voting window
+* Enable/disable community voting
+* Vote submission
+* Vote removal
+* Duplicate-vote prevention
+* Rate limiting
+* Hidden voting results
+* Audit logging
+* Participant-facing voting interface
+
+Voting availability can be controlled by the event configuration.
+
+---
+
+## 🛡️ Role-Based Access Control
+
+RaptorOS separates capabilities according to user roles.
+
+| Role            | Main Capabilities                                         |
+| --------------- | --------------------------------------------------------- |
+| **Admin**       | Full platform administration                              |
+| **Organizer**   | Event, participant, judging and operational management    |
+| **Judge**       | Assigned project evaluation and evidence-assisted judging |
+| **Participant** | Teams, projects and community voting                      |
+
+Protected routes and API endpoints enforce role-based access rather than relying only on frontend navigation.
+
+---
+
+## 📋 Audit Ledger
+
+RaptorOS maintains an audit ledger for important system and administrative actions.
+
+The ledger records information such as:
+
+* Actor
+* Action
+* Entity
+* Event
+* Timestamp
+* Associated metadata
+
+This provides a traceable history of important hackathon activity.
+
+---
+
+## 🔐 Integrity & Fairness
+
+RaptorOS includes mechanisms intended to improve judging transparency and integrity:
+
+* Judge/project assignments
+* Multiple judge evaluations
+* Weighted rubrics
+* Score normalization
+* Judge conflict tracking
+* Evaluation completion tracking
+* Audit logging
+* Signed judge records
+* Human-controlled final decisions
+
+The **Control Room** provides organizers with an operational overview of judging progress and system integrity.
+
+---
+
+## 🧩 Additional Platform Capabilities
+
+### Webhooks
+
+Event webhooks can be created and monitored through the API.
+
+Supported operations include:
+
+* Create event webhook
+* List event webhooks
+* View webhook deliveries
+* Record test deliveries
+
+### Certificates
+
+RaptorOS provides certificate issuing and verification APIs.
+
+Certificates include a verification code that can be checked independently through the verification endpoint.
+
+### Signed Judge Records
+
+Judge records can be issued with cryptographic integrity information and verified through the API.
+
+### Gallery Widget
+
+RaptorOS provides an embeddable project gallery widget that exposes submitted project information for an event.
+
+### CSV Import / Export
+
+The platform supports CSV-based workflows including:
+
+* Participant import
+* Judging result export
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart TB
+    U[Users] --> F[React Frontend]
+
+    F --> A[Express REST API]
+
+    A --> AUTH[Authentication & RBAC]
+    A --> EVENT[Event Management]
+    A --> TEAM[Teams & Participants]
+    A --> PROJECT[Projects & Submissions]
+    A --> JUDGE[Judging Engine]
+    A --> VOTE[Community Voting]
+    A --> AUDIT[Audit Ledger]
+    A --> JEV[JEV Service]
+
+    JEV --> RAG[RAG / Evidence Retrieval]
+    RAG --> EMB[Custom Embedding Service]
+
+    A --> DB[(PostgreSQL)]
+
+    A --> WEBHOOK[Webhooks]
+    A --> CERT[Certificates]
+    A --> SIGN[Signed Judge Records]
+    A --> GALLERY[Gallery Widget]
+```
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
 
-- React
-- Vite
-- React Router
-- Tailwind CSS
-- Lucide React
-- Recharts
-- Axios
+* React
+* Vite
+* React Router
+* Lucide Icons
+* CSS
 
 ### Backend
 
-- Node.js
-- Express
-- PostgreSQL
-- pg
-- JWT
-- bcryptjs
-- CORS
+* Node.js
+* Express.js
+* REST APIs
+* JWT authentication
+* Role-based authorization
+
+### Database
+
+* PostgreSQL
+
+### AI / Evaluation
+
+* Custom embedding-based evidence retrieval
+* Cosine similarity
+* JEV evidence analysis
+* Criterion-level evaluation assistance
 
 ### Infrastructure
 
-- Docker
-- Docker Compose
-- PostgreSQL 16
+* Docker
+* Docker Compose
+* PostgreSQL container
+* Node.js container
 
-### AI / Evidence Layer
+---
 
-- Local deterministic embeddings
-- Local retrieval
-- RAG-style project evidence retrieval
-- JEV judging-assistance service
-
-The application does not require a cloud AI provider or external API to run the core judging workflow.
-
-## Roles
-
-RaptorOS supports role-based access control.
-
-### Participant
-
-Participants can:
-
-- Register
-- Create or join teams
-- Create projects
-- Manage project submissions
-- Submit projects before the deadline
-
-### Judge
-
-Judges can:
-
-- Access accepted judging assignments
-- Review assigned projects
-- Score rubric criteria
-- Monitor judging progress
-- Review evidence
-- Use judging assistance
-- View score explanations
-
-### Organizer
-
-Organizers can:
-
-- Create and configure events
-- Manage judges
-- Create rubrics
-- Assign judges
-- Monitor event health
-- Review conflicts
-- Inspect audit logs
-- Configure voting
-- Export results
-
-### Admin
-
-Administrators have platform-level management capabilities and organizer-level judging operations.
-
-## Running RaptorOS
-
-### Prerequisites
-
-- Node.js
-- npm
-- Docker Desktop
-- Git
-
-### Docker
-
-From the repository root:
-
-```bash
-docker compose up --build
-```
-
-The Docker environment starts the application backend and PostgreSQL database.
-
-The PostgreSQL database is initialized automatically using:
-
-```text
-database/schema.sql
-database/seed.sql
-```
-
-The database uses a persistent Docker volume so data survives container restarts.
-
-## Frontend Development
-
-From the `client` directory:
-
-```bash
-npm install
-npm run dev
-```
-
-The frontend communicates with the backend API at:
-
-```text
-http://localhost:5000/api
-```
-
-The API URL can be overridden using:
-
-```text
-VITE_API_URL
-```
-
-## Backend Development
-
-From the `server` directory:
-
-```bash
-npm install
-npm run dev
-```
-
-The backend runs on:
-
-```text
-http://localhost:5000
-```
-
-API health endpoint:
-
-```text
-GET /api/health
-```
-
-## Main API Areas
-
-```text
-/api/auth
-/api/admin
-/api/events
-/api/teams
-/api/projects
-/api/judging
-/api/audit
-/api/voting
-/api/conflicts
-/api/invitations
-/api/health
-/api/jev
-/api/webhooks
-/api/judge-records
-/api/certificates
-/api/import
-/api/gallery-widget
-```
-
-## Judging Workflow
-
-```text
-Event
-  ↓
-Rubric
-  ↓
-Judge Invitation
-  ↓
-Invitation Accepted
-  ↓
-Judge Assignment
-  ↓
-Project Review
-  ↓
-Criterion Scores
-  ↓
-Weighted Total
-  ↓
-Judge-Level Normalization
-  ↓
-Final Results
-```
-
-RaptorOS prevents judges from being assigned to projects belonging to their own team.
-
-See `JUDGING.md` for the complete scoring and normalization methodology.
-
-## Score Normalization
-
-RaptorOS uses judge-level Z-score normalization.
-
-For each judge, project-level weighted totals are calculated first.
-
-The judge's mean and standard deviation are then calculated across the projects evaluated by that judge.
-
-The normalized score is calculated as:
-
-```text
-Normalized Score =
-50 + ((Project Score - Judge Mean) / Judge Standard Deviation) × 10
-```
-
-Normalized scores are bounded between 0 and 100.
-
-When a judge has zero score variance, the normalized score defaults to 50 because a Z-score cannot be calculated when the standard deviation is zero.
-
-## Explain Score
-
-RaptorOS provides an Explain Score workflow that exposes:
-
-- Judge
-- Rubric
-- Criterion
-- Criterion weight
-- Maximum score
-- Raw score
-- Weighted score
-- Judge total
-
-This allows organizers and judges to inspect how a project's score was constructed.
-
-## Raptor Intelligence
-
-The JEV layer provides evidence retrieval and judging assistance.
-
-```text
-Project Submission
-       ↓
-Evidence Indexing
-       ↓
-Local Retrieval
-       ↓
-Relevant Evidence
-       ↓
-Criterion Analysis
-       ↓
-Human Judge Decision
-```
-
-JEV is advisory and does not submit or override a judge's final score.
-
-## Duplicate Detection
-
-RaptorOS performs duplicate project detection using a normalized SHA-256 fingerprint derived from:
-
-- Project title
-- Project description
-- Repository URL
-
-Duplicate projects within the same event can be rejected during project creation.
-
-## Audit Trail
-
-Important platform actions are recorded in the audit log.
-
-The Decision Ledger provides:
-
-- Actor
-- Action
-- Entity
-- Entity ID
-- Timestamp
-- Metadata
-
-This creates an inspectable event history for operational and judging actions.
-
-## Community Voting
-
-Community voting can be configured for an event.
-
-The system supports:
-
-- Voting windows
-- One vote per user/project
-- Hidden results during voting
-- Vote rate limiting
-- Vote removal
-- Project comments
-- Audit logging
-
-## Judging Simulator
-
-The Judging Simulator allows organizers to test judging configuration without modifying live judgments.
-
-It simulates:
-
-- Judge assignment
-- Judges per project
-- Workload balancing
-- Random rubric scores
-- Project averages
-- Judge workloads
-
-Simulation results are not persisted as live judgments.
-
-## Certificates and Judge Records
-
-RaptorOS includes:
-
-- Certificate generation
-- Unique certificate codes
-- Certificate lookup
-- Signed judge participation records
-- Record verification
-
-Judge participation records use server-side cryptographic signing and verification.
-
-## Webhooks
-
-RaptorOS provides webhook configuration and delivery tracking endpoints.
-
-The current implementation records webhook delivery events and provides webhook management APIs.
-
-## Bulk Import
-
-Participant CSV import is available through the API.
-
-Imported participants can be created from CSV data and tracked through import jobs.
-
-## Gallery Widget
-
-RaptorOS provides an embeddable gallery widget endpoint that generates a self-contained project gallery.
-
-## Project Structure
+## 📂 Project Structure
 
 ```text
 RaptorOS/
+│
 ├── client/
 │   ├── src/
 │   │   ├── components/
-│   │   ├── context/
-│   │   ├── hooks/
-│   │   ├── layouts/
 │   │   ├── pages/
-│   │   ├── services/
-│   │   └── utils/
-│   └── package.json
+│   │   ├── context/
+│   │   └── ...
+│   └── ...
 │
 ├── server/
 │   ├── src/
@@ -481,83 +376,296 @@ RaptorOS/
 │   │   ├── controllers/
 │   │   ├── middleware/
 │   │   ├── routes/
-│   │   └── services/
+│   │   ├── services/
+│   │   └── app.js
 │   ├── Dockerfile
 │   └── package.json
 │
 ├── database/
 │   ├── schema.sql
-│   └── seed.sql
+│   ├── seed.sql
+│   └── migrations/
 │
-├── docs/
-├── tests/
 ├── docker-compose.yml
 └── README.md
 ```
 
-## Security Model
+---
+
+## ⚡ Getting Started
+
+### Prerequisites
+
+Make sure you have:
+
+* Docker
+* Docker Compose
+* Git
+
+No local PostgreSQL installation is required when using the provided Docker Compose setup.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Muskanmulani/RaptorOS.git
+cd RaptorOS
+```
+
+### 2. Start the backend and database
+
+```bash
+docker compose up --build
+```
+
+The backend will be available at:
+
+```text
+http://localhost:5000
+```
+
+The API health endpoint is:
+
+```text
+http://localhost:5000/api/health
+```
+
+### 3. Start the frontend
+
+Open a second terminal:
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+The frontend will normally be available at:
+
+```text
+http://localhost:5175
+```
+
+---
+
+## 🌱 Seeded Demo Event
+
+RaptorOS includes a seeded **RaptorOS Demo Hackathon** so the platform can be explored immediately after setup.
+
+The seeded environment includes:
+
+* Demo event
+* Tracks
+* Prizes
+* Participants
+* Teams
+* Projects
+* Judges
+* Judging configuration
+
+### Demo accounts
+
+All demo accounts use:
+
+```text
+Password: RaptorOS@123
+```
+
+| Role        | Email                        |
+| ----------- | ---------------------------- |
+| Admin       | `admin@raptoros.local`       |
+| Organizer   | `organizer@raptoros.local`   |
+| Judge       | `judge1@raptoros.local`      |
+| Judge       | `judge2@raptoros.local`      |
+| Participant | `participant@raptoros.local` |
+
+> **For local/demo use only. Change credentials and secrets before using RaptorOS in a real environment.**
+
+---
+
+## 🎯 Suggested Demo Workflow
+
+After starting RaptorOS:
+
+```text
+Landing Page
+     ↓
+Organizer Login
+     ↓
+Demo Hackathon
+     ↓
+Participant & Teams
+     ↓
+Project Gallery
+     ↓
+Judge Login
+     ↓
+Assigned Project
+     ↓
+Rubric-based Evaluation
+     ↓
+Evidence Retrieval
+     ↓
+Explain Score
+     ↓
+Control Room
+     ↓
+Community Voting
+     ↓
+Audit Ledger
+```
+
+This demonstrates the major end-to-end workflow of the platform.
+
+---
+
+## 🔌 API Overview
+
+RaptorOS exposes REST APIs for the major platform workflows.
+
+Examples include:
+
+```text
+/api/auth
+/api/events
+/api/projects
+/api/judging
+/api/jev
+/api/voting
+/api/webhooks
+/api/certificates
+/api/gallery-widget
+/api/import
+```
+
+### JEV endpoints
+
+```text
+POST /api/jev/project/:projectId/index
+GET  /api/jev/project/:projectId/search
+GET  /api/jev/project/:projectId/analyze
+GET  /api/jev/project/:projectId/criterion/:criterionId
+```
+
+These endpoints are protected by authentication and role-based authorization.
+
+---
+
+## 🔄 Event Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> Open
+    Open --> Judging
+    Judging --> Completed
+    Completed --> [*]
+```
+
+The event lifecycle allows organizers to manage the competition from initial configuration through final judging and completion.
+
+---
+
+## 🧪 Example Judging Flow
+
+A typical evaluation can look like:
+
+```text
+Project: EcoRoute
+
+Technical Depth     → 8/10
+Innovation          → 9/10
+Impact              → 8/10
+Execution           → 9/10
+
+Weighted Score      → 84.50
+```
+
+JEV can then retrieve evidence related to each criterion and present it to the judge for verification.
+
+The judge remains responsible for the final evaluation.
+
+---
+
+## 🔒 Security Considerations
 
 RaptorOS implements:
 
-- JWT authentication
-- Password hashing with bcrypt
-- Role-based authorization
-- Backend-enforced role isolation
-- Submission deadline enforcement
-- Judge/team conflict checks
-- Database uniqueness constraints
-- Vote rate limiting
-- Input validation
-- Audit logging
+* JWT-based authentication
+* Role-based authorization
+* Protected API routes
+* Rate limiting for voting/comment workflows
+* Duplicate-vote prevention
+* Audit logging
+* Signed judge records
+* Environment-based database configuration
 
-Authorization is enforced on the backend rather than relying only on frontend visibility.
+For production deployments, additional hardening should be applied, including secure secret management, HTTPS, production credentials, persistent evidence storage, monitoring, and infrastructure-level security controls.
 
-## Self-Hosting
+---
 
-RaptorOS is designed to be self-hosted.
+## 🚧 Current Implementation Notes
 
-```text
-Docker Compose
-      │
-      ├── RaptorOS API
-      │
-      └── PostgreSQL
-```
+RaptorOS is designed as an open-source, self-hostable hackathon management platform.
 
-No cloud database, cloud authentication provider, or proprietary hosted service is required for the core application.
+Current implementation choices include:
 
-## Testing
+* PostgreSQL for persistent application data
+* Docker Compose for local/self-hosted setup
+* Custom lightweight embeddings for evidence retrieval
+* In-memory evidence indexing for JEV
+* Human-in-the-loop judging
+* Client-side project ordering for the current participant experience
 
-The project includes backend module checks and application-level verification.
+These choices keep the platform lightweight while leaving room for future production-scale improvements.
 
-The final acceptance report documents verification against the hackathon requirements.
+---
 
-## Open Source
+## 🔮 Future Improvements
 
-RaptorOS is released as open-source software under the license included in this repository.
+Potential future extensions include:
 
-## Hackathon
+* Persistent vector storage
+* Production-grade embedding models
+* Semantic search infrastructure
+* Server-side project randomization
+* Advanced analytics dashboards
+* Automated notification systems
+* More integrations
+* Production deployment templates
+* Enhanced certificate customization
+* Expanded judge calibration tools
 
-RaptorOS was built for the Dogfood 72-Hour Hackathon by Hackathon Raptors.
+---
 
-The project is designed around the challenge requirement of building a self-hostable platform capable of managing and judging hackathon submissions.
+## 🤝 Contributors
 
-## Project Philosophy
+Built by:
 
-### Run
+* **Muskan Mulani**
+* **Zoha Shaikh**
 
-Give organizers operational visibility into the event.
+RaptorOS was developed as an open-source hackathon platform focused on making hackathon operations more structured, transparent, and manageable.
 
-### Judge
+---
 
-Make judging structured, transparent, and auditable.
+## 📜 License
 
-### Ship
+This project is open source. See the repository license for the applicable terms.
 
-Keep the platform self-hostable, reproducible, and usable beyond the hackathon.
+---
 
-## Status
+## ⭐ Why RaptorOS?
 
-RaptorOS is currently in final integration and verification.
+RaptorOS brings the entire hackathon workflow into one system:
 
-The final acceptance report records which capabilities have been verified against the hackathon requirements.
+**Events → Teams → Projects → Judging → Evidence → Decisions → Voting → Auditing → Results**
+
+Instead of managing these workflows across disconnected tools, RaptorOS provides a centralized platform with role-based workflows, structured evaluation, evidence-assisted judging, and an auditable competition lifecycle.
+
+---
+
+<p align="center">
+  <strong>🦖 RaptorOS</strong><br>
+  <em>Run hackathons. Structure judging. Keep decisions human.</em>
+</p>
+s
