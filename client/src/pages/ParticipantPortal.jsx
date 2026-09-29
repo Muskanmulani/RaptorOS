@@ -1,55 +1,133 @@
 import { useEffect, useState } from "react";
-import { Users, Plus, LogIn, Copy, CheckCircle2 } from "lucide-react";
+import CommandHeader from "../components/CommandHeader";
+import {
+  Copy,
+  Check,
+  Vote,
+  MessageSquare,
+  RefreshCw
+} from "lucide-react";
 import api from "../services/api";
-import { useAuth } from "../context/AuthContext";
+
+function shuffleProjects(items) {
+  const shuffled = [...items];
+
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled;
+}
 
 function ParticipantPortal() {
-  const { user } = useAuth();
-
   const [events, setEvents] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [projects, setProjects] = useState([]);
 
-  const [teamName, setTeamName] = useState("");
   const [selectedEvent, setSelectedEvent] = useState("");
-
+  const [teamName, setTeamName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
 
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [joining, setJoining] = useState(false);
+  const [teamLoading, setTeamLoading] = useState(false);
+  const [votingLoading, setVotingLoading] = useState(false);
+
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
   const [copiedCode, setCopiedCode] = useState("");
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  const [commentOpen, setCommentOpen] = useState({});
+  const [comments, setComments] = useState({});
+  const [commentText, setCommentText] = useState({});
+  const [commentLoading, setCommentLoading] = useState({});
 
+  const loadVotingData = async () => {
+    setVotingLoading(true);
+
+    try {
+      const response = await api.get("/projects?limit=50");
+
+      const rawProjects = response.data?.projects || [];
+
+      const submittedProjects = rawProjects.filter(
+        (project) =>
+          project.id &&
+          String(project.status || "").toUpperCase() !== "DRAFT"
+      );
+
+      const votingProjects = await Promise.all(
+        submittedProjects.map(async (project) => {
+          try {
+            const votingResponse = await api.get(
+              `/voting/project/${project.id}`
+            );
+
+            const commentsResponse = await api.get(
+              `/voting/project/${project.id}/comments`
+            );
+
+            return {
+              ...project,
+              voting: votingResponse.data,
+              comments: commentsResponse.data?.comments || []
+            };
+          } catch (projectError) {
+            console.error(
+              `Failed to load voting data for project ${project.id}:`,
+              projectError
+            );
+
+            return {
+              ...project,
+              voting: {
+                votingEnabled: false,
+                votingOpen: false,
+                hasVoted: false,
+                voteCount: 0
+              },
+              comments: []
+            };
+          }
+        })
+      );
+
+      setProjects(shuffleProjects(votingProjects));
+    } catch (loadError) {
+      console.error("Failed to load projects:", loadError);
+      setProjects([]);
+    } finally {
+      setVotingLoading(false);
+    }
+  };
+
+  const loadData = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
       const [eventsResponse, teamsResponse] = await Promise.all([
         api.get("/events"),
         api.get("/teams/mine")
       ]);
 
-      const availableEvents = eventsResponse.data?.events || [];
-      const myTeams = teamsResponse.data?.teams || teamsResponse.data || [];
+      const eventData = eventsResponse.data?.events || [];
+      const teamData = teamsResponse.data?.teams || [];
 
-      setEvents(availableEvents);
-      setTeams(Array.isArray(myTeams) ? myTeams : []);
+      setEvents(eventData);
+      setTeams(teamData);
 
-      if (!selectedEvent && availableEvents.length > 0) {
-        const activeEvent =
-          availableEvents.find(
-            (event) =>
-              event.status !== "completed"
-          ) || availableEvents[0];
-
-        setSelectedEvent(activeEvent.id);
+      if (eventData.length > 0) {
+        setSelectedEvent((current) => current || eventData[0].id);
       }
-    } catch (err) {
-      console.error("Failed to load participant data:", err);
+
+      await loadVotingData();
+    } catch (loadError) {
+      console.error("Failed to load participant data:", loadError);
+
       setError(
-        err.response?.data?.message ||
+        loadError.response?.data?.message ||
           "Unable to load participant data."
       );
     } finally {
@@ -64,31 +142,43 @@ function ParticipantPortal() {
   const handleCreateTeam = async (event) => {
     event.preventDefault();
 
-    if (!selectedEvent || !teamName.trim()) {
-      setError("Select an event and enter a team name.");
+    if (!selectedEvent) {
+      setError("Please select an event.");
       return;
     }
 
-    try {
-      setCreating(true);
-      setError("");
-      setMessage("");
+    if (!teamName.trim()) {
+      setError("Please enter a team name.");
+      return;
+    }
 
-      await api.post("/teams", {
-        event_id: selectedEvent,
+    setTeamLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const response = await api.post("/teams", {
+        eventId: selectedEvent,
         name: teamName.trim()
       });
 
+      setMessage(
+        response.data?.message || "Team created successfully."
+      );
+
       setTeamName("");
-      setMessage("Team created successfully.");
-      await loadData();
-    } catch (err) {
+
+      const teamsResponse = await api.get("/teams/mine");
+      setTeams(teamsResponse.data?.teams || []);
+    } catch (createError) {
+      console.error("Failed to create team:", createError);
+
       setError(
-        err.response?.data?.message ||
+        createError.response?.data?.message ||
           "Unable to create team."
       );
     } finally {
-      setCreating(false);
+      setTeamLoading(false);
     }
   };
 
@@ -96,310 +186,652 @@ function ParticipantPortal() {
     event.preventDefault();
 
     if (!inviteCode.trim()) {
-      setError("Enter an invite code.");
+      setError("Please enter an invite code.");
       return;
     }
 
-    try {
-      setJoining(true);
-      setError("");
-      setMessage("");
+    setTeamLoading(true);
+    setError("");
+    setMessage("");
 
-      await api.post("/teams/join", {
+    try {
+      const response = await api.post("/teams/join", {
         inviteCode: inviteCode.trim()
       });
 
+      setMessage(
+        response.data?.message || "Joined team successfully."
+      );
+
       setInviteCode("");
-      setMessage("You joined the team successfully.");
-      await loadData();
-    } catch (err) {
+
+      const teamsResponse = await api.get("/teams/mine");
+      setTeams(teamsResponse.data?.teams || []);
+    } catch (joinError) {
+      console.error("Failed to join team:", joinError);
+
       setError(
-        err.response?.data?.message ||
+        joinError.response?.data?.message ||
           "Unable to join team."
       );
     } finally {
-      setJoining(false);
+      setTeamLoading(false);
     }
   };
 
-  const copyInviteCode = async (code) => {
+  const handleCopyInviteCode = async (code) => {
     try {
       await navigator.clipboard.writeText(code);
+
       setCopiedCode(code);
 
       setTimeout(() => {
         setCopiedCode("");
       }, 1500);
-    } catch (err) {
-      console.error("Failed to copy invite code:", err);
+    } catch (copyError) {
+      console.error("Failed to copy invite code:", copyError);
     }
   };
 
+  const handleVote = async (projectId) => {
+    setVotingLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const response = await api.post(`/voting/project/${projectId}`);
+
+      setMessage(
+        response.data?.message || "Your community vote has been recorded."
+      );
+
+      await loadVotingData();
+    } catch (voteError) {
+      console.error("Failed to vote:", voteError);
+
+      setError(
+        voteError.response?.data?.message ||
+          "Unable to record your vote."
+      );
+    } finally {
+      setVotingLoading(false);
+    }
+  };
+
+  const handleRemoveVote = async (projectId) => {
+    setVotingLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const response = await api.delete(
+        `/voting/project/${projectId}`
+      );
+
+      setMessage(
+        response.data?.message || "Your vote has been removed."
+      );
+
+      await loadVotingData();
+    } catch (voteError) {
+      console.error("Failed to remove vote:", voteError);
+
+      setError(
+        voteError.response?.data?.message ||
+          "Unable to remove your vote."
+      );
+    } finally {
+      setVotingLoading(false);
+    }
+  };
+
+  const loadComments = async (projectId) => {
+    try {
+      const response = await api.get(
+        `/voting/project/${projectId}/comments`
+      );
+
+      setComments((current) => ({
+        ...current,
+        [projectId]: response.data?.comments || []
+      }));
+    } catch (commentError) {
+      console.error("Failed to load comments:", commentError);
+    }
+  };
+
+  const toggleComments = async (projectId) => {
+    const isOpen = commentOpen[projectId];
+
+    setCommentOpen((current) => ({
+      ...current,
+      [projectId]: !isOpen
+    }));
+
+    if (!isOpen && !comments[projectId]) {
+      await loadComments(projectId);
+    }
+  };
+
+  const handleCommentChange = (projectId, value) => {
+    setCommentText((current) => ({
+      ...current,
+      [projectId]: value
+    }));
+  };
+
+  const handleAddComment = async (projectId) => {
+    const text = String(commentText[projectId] || "").trim();
+
+    if (!text) {
+      setError("Please enter a comment before posting.");
+      return;
+    }
+
+    setCommentLoading((current) => ({
+      ...current,
+      [projectId]: true
+    }));
+
+    setError("");
+    setMessage("");
+
+    try {
+      const response = await api.post(
+        `/voting/project/${projectId}/comments`,
+        {
+          comment: text
+        }
+      );
+
+      const newComment = response.data?.comment;
+
+      setCommentText((current) => ({
+        ...current,
+        [projectId]: ""
+      }));
+
+      if (newComment) {
+        setComments((current) => ({
+          ...current,
+          [projectId]: [
+            ...(current[projectId] || []),
+            newComment
+          ]
+        }));
+      } else {
+        await loadComments(projectId);
+      }
+
+      setProjects((currentProjects) =>
+        currentProjects.map((project) =>
+          project.id === projectId
+            ? {
+                ...project,
+                comments: newComment
+                  ? [...(project.comments || []), newComment]
+                  : project.comments || []
+              }
+            : project
+        )
+      );
+
+      setMessage(
+        response.data?.message || "Comment added successfully."
+      );
+    } catch (commentError) {
+      console.error("Failed to add comment:", commentError);
+
+      setError(
+        commentError.response?.data?.message ||
+          commentError.message ||
+          "Unable to add comment."
+      );
+    } finally {
+      setCommentLoading((current) => ({
+        ...current,
+        [projectId]: false
+      }));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div>
+        <CommandHeader />
+
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <p className="text-sm font-semibold tracking-[0.15em] text-white/50">
+            LOADING PARTICIPANT CONSOLE...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-6xl">
-      <div className="mb-8">
-        <p className="text-[10px] tracking-[0.3em] text-orange-500">
+    <div>
+      <CommandHeader />
+
+      <section className="mb-10">
+        <p className="text-[11px] font-semibold tracking-[0.3em] text-orange-400">
           PARTICIPANT CONSOLE
         </p>
 
-        <h1 className="mt-2 text-3xl font-semibold">
+        <h1 className="mt-3 text-5xl font-bold tracking-tight text-white">
           Welcome, {user?.name || "Participant"}
         </h1>
 
-        <p className="mt-2 text-sm text-white/40">
-          Register for hackathons, create your team, or join an
-          existing team.
+        <p className="mt-4 max-w-2xl text-base font-medium leading-6 text-white/60">
+          Create or join a team, manage your participation, and take part in community voting.
         </p>
-      </div>
+      </section>
 
-      {message && (
-        <div className="mb-6 flex items-center gap-3 rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-300">
-          <CheckCircle2 size={17} />
-          {message}
+      {(message || error) && (
+        <div
+          className={`mb-8 border px-5 py-4 text-sm font-semibold ${
+            error
+              ? "border-red-400/30 bg-red-400/5 text-red-300"
+              : "border-orange-400/30 bg-orange-400/5 text-orange-300"
+          }`}
+        >
+          {error || message}
         </div>
       )}
 
-      {error && (
-        <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-          {error}
-        </div>
-      )}
+      <section className="grid gap-6 lg:grid-cols-2">
+        <div className="border border-white/15 bg-[#151310] p-6">
+          <div className="mb-6">
+            <p className="text-[11px] font-semibold tracking-[0.25em] text-orange-400">
+              CREATE A TEAM
+            </p>
 
-      {loading ? (
-        <div className="rounded-2xl border border-white/10 bg-[#151310] p-8 text-sm text-white/40">
-          Loading participant console...
-        </div>
-      ) : (
-        <>
-          <section className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-[#151310] p-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center border border-orange-500/30 bg-orange-500/10 text-orange-400">
-                  <Plus size={18} />
-                </div>
+            <h2 className="mt-2 text-xl font-semibold text-white">
+              Start a new team for an event
+            </h2>
+          </div>
 
-                <div>
-                  <h2 className="font-semibold">
-                    Create a team
-                  </h2>
+          <form onSubmit={handleCreateTeam} className="space-y-5">
+            <div>
+              <label className="mb-2 block text-[11px] font-semibold tracking-[0.18em] text-white/50">
+                EVENT
+              </label>
 
-                  <p className="text-xs text-white/30">
-                    Start a new team for an event
-                  </p>
-                </div>
-              </div>
-
-              <form
-                onSubmit={handleCreateTeam}
-                className="mt-6 space-y-4"
+              <select
+                value={selectedEvent}
+                onChange={(event) => setSelectedEvent(event.target.value)}
+                className="w-full border border-white/15 bg-[#0f0e0c] px-4 py-3 text-sm font-medium text-white outline-none"
               >
-                <div>
-                  <label className="text-xs text-white/40">
-                    Event
-                  </label>
+                <option value="">Select an event</option>
 
-                  <select
-                    value={selectedEvent}
-                    onChange={(event) =>
-                      setSelectedEvent(event.target.value)
-                    }
-                    className="mt-2 w-full rounded-lg border border-white/10 bg-[#0d0c0a] px-4 py-3 text-sm text-white outline-none focus:border-orange-500/50"
-                  >
-                    <option value="">
-                      Select an event
-                    </option>
-
-                    {events.map((event) => (
-                      <option
-                        key={event.id}
-                        value={event.id}
-                      >
-                        {event.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs text-white/40">
-                    Team name
-                  </label>
-
-                  <input
-                    type="text"
-                    value={teamName}
-                    onChange={(event) =>
-                      setTeamName(event.target.value)
-                    }
-                    placeholder="e.g. Team Phoenix"
-                    className="mt-2 w-full rounded-lg border border-white/10 bg-[#0d0c0a] px-4 py-3 text-sm text-white outline-none placeholder:text-white/20 focus:border-orange-500/50"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="w-full rounded-lg bg-orange-500 px-4 py-3 text-sm font-semibold text-black transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {creating
-                    ? "Creating team..."
-                    : "Create team"}
-                </button>
-              </form>
+                {events.map((event) => (
+                  <option key={event.id} value={event.id}>
+                    {event.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-[#151310] p-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center border border-white/10 bg-white/[0.03] text-white/60">
-                  <LogIn size={18} />
-                </div>
+            <div>
+              <label className="mb-2 block text-[11px] font-semibold tracking-[0.18em] text-white/50">
+                TEAM NAME
+              </label>
 
-                <div>
-                  <h2 className="font-semibold">
-                    Join a team
-                  </h2>
+              <input
+                value={teamName}
+                onChange={(event) => setTeamName(event.target.value)}
+                placeholder="Enter team name"
+                className="w-full border border-white/15 bg-[#0f0e0c] px-4 py-3 text-sm font-medium text-white outline-none placeholder:text-white/30"
+              />
+            </div>
 
-                  <p className="text-xs text-white/30">
-                    Use the invite code shared by your teammate
-                  </p>
-                </div>
-              </div>
+            <button
+              type="submit"
+              disabled={teamLoading}
+              className="border border-orange-400 bg-orange-400 px-5 py-3 text-[11px] font-bold tracking-[0.18em] text-black transition hover:bg-orange-300 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {teamLoading ? "CREATING..." : "CREATE TEAM"}
+            </button>
+          </form>
+        </div>
 
-              <form
-                onSubmit={handleJoinTeam}
-                className="mt-6"
+        <div className="border border-white/15 bg-[#151310] p-6">
+          <div className="mb-6">
+            <p className="text-[11px] font-semibold tracking-[0.25em] text-orange-400">
+              JOIN A TEAM
+            </p>
+
+            <h2 className="mt-2 text-xl font-semibold text-white">
+              Use the invite code shared by your teammate
+            </h2>
+          </div>
+
+          <form onSubmit={handleJoinTeam} className="space-y-5">
+            <div>
+              <label className="mb-2 block text-[11px] font-semibold tracking-[0.18em] text-white/50">
+                INVITE CODE
+              </label>
+
+              <input
+                value={inviteCode}
+                onChange={(event) => setInviteCode(event.target.value)}
+                placeholder="e.g. NOVA2026"
+                className="w-full border border-white/15 bg-[#0f0e0c] px-4 py-3 text-sm font-medium uppercase tracking-[0.08em] text-white outline-none placeholder:text-white/30"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={teamLoading}
+              className="border border-white/20 px-5 py-3 text-[11px] font-bold tracking-[0.18em] text-white transition hover:border-orange-400 hover:text-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {teamLoading ? "JOINING..." : "JOIN TEAM"}
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* YOUR TEAMS — intentionally before Community Voting */}
+      <section className="mt-10">
+        <div className="mb-6">
+          <p className="text-[11px] font-semibold tracking-[0.25em] text-orange-400">
+            YOUR TEAMS
+          </p>
+
+          <h2 className="mt-2 text-2xl font-semibold text-white">
+            Team membership
+          </h2>
+
+          <p className="mt-2 text-sm font-medium text-white/50">
+            {teams.length} {teams.length === 1 ? "team" : "teams"}
+          </p>
+        </div>
+
+        {teams.length === 0 ? (
+          <div className="border border-white/15 p-8">
+            <p className="text-sm font-medium text-white/50">
+              You are not a member of any team yet.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {teams.map((team) => (
+              <div
+                key={team.id}
+                className="border border-white/15 bg-[#151310] p-6"
               >
-                <label className="text-xs text-white/40">
-                  Invite code
-                </label>
+                <div className="grid gap-6 sm:grid-cols-3">
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-[0.2em] text-white/40">
+                      TEAM
+                    </p>
 
-                <input
-                  type="text"
-                  value={inviteCode}
-                  onChange={(event) =>
-                    setInviteCode(event.target.value)
-                  }
-                  placeholder="Enter invite code"
-                  className="mt-2 w-full rounded-lg border border-white/10 bg-[#0d0c0a] px-4 py-3 text-sm text-white outline-none placeholder:text-white/20 focus:border-orange-500/50"
-                />
+                    <p className="mt-2 text-lg font-semibold text-white">
+                      {team.name}
+                    </p>
+                  </div>
 
-                <button
-                  type="submit"
-                  disabled={joining}
-                  className="mt-4 w-full rounded-lg border border-white/10 px-4 py-3 text-sm font-medium text-white/70 transition hover:border-orange-500/40 hover:bg-orange-500/[0.05] hover:text-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {joining
-                    ? "Joining team..."
-                    : "Join team"}
-                </button>
-              </form>
-            </div>
-          </section>
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-[0.2em] text-white/40">
+                      EVENT
+                    </p>
 
-          <section className="mt-8">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <p className="text-[10px] tracking-[0.25em] text-white/30">
-                  YOUR TEAMS
-                </p>
+                    <p className="mt-2 text-sm font-medium text-white/75">
+                      {team.event_name || team.event || "—"}
+                    </p>
+                  </div>
 
-                <h2 className="mt-1 text-xl font-semibold">
-                  Team membership
-                </h2>
-              </div>
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-[0.2em] text-white/40">
+                      INVITE CODE
+                    </p>
 
-              <span className="text-xs text-white/30">
-                {teams.length} team{teams.length === 1 ? "" : "s"}
-              </span>
-            </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="font-mono text-sm font-semibold tracking-[0.1em] text-orange-400">
+                        {team.invite_code || "—"}
+                      </span>
 
-            {teams.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-white/10 bg-[#151310] p-8 text-center">
-                <Users
-                  size={28}
-                  className="mx-auto text-white/20"
-                />
-
-                <p className="mt-3 text-sm text-white/40">
-                  You are not part of a team yet.
-                </p>
-
-                <p className="mt-1 text-xs text-white/20">
-                  Create a team or join one using an invite code.
-                </p>
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {teams.map((team) => (
-                  <div
-                    key={team.id}
-                    className="rounded-2xl border border-white/10 bg-[#151310] p-6"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-[10px] tracking-[0.2em] text-orange-500">
-                          TEAM
-                        </p>
-
-                        <h3 className="mt-1 text-lg font-semibold">
-                          {team.name}
-                        </h3>
-                      </div>
-
-                      <Users
-                        size={18}
-                        className="text-white/30"
-                      />
-                    </div>
-
-                    <div className="mt-5 border-t border-white/10 pt-4">
-                      <p className="text-[10px] tracking-[0.2em] text-white/20">
-                        EVENT
-                      </p>
-
-                      <p className="mt-1 text-sm text-white/60">
-                        {team.event_name || "Hackathon Event"}
-                      </p>
-                    </div>
-
-                    {team.invite_code && (
-                      <div className="mt-4">
-                        <p className="text-[10px] tracking-[0.2em] text-white/20">
-                          INVITE CODE
-                        </p>
-
+                      {team.invite_code && (
                         <button
                           type="button"
                           onClick={() =>
-                            copyInviteCode(team.invite_code)
+                            handleCopyInviteCode(team.invite_code)
                           }
-                          className="mt-2 flex w-full items-center justify-between rounded-lg border border-white/10 bg-[#0d0c0a] px-4 py-3 text-left transition hover:border-orange-500/30"
+                          className="text-white/40 transition hover:text-orange-400"
+                          title="Copy invite code"
                         >
-                          <span className="font-mono text-sm text-orange-400">
-                            {team.invite_code}
-                          </span>
-
                           {copiedCode === team.invite_code ? (
-                            <CheckCircle2
-                              size={15}
-                              className="text-green-400"
-                            />
+                            <Check size={15} />
                           ) : (
-                            <Copy
-                              size={15}
-                              className="text-white/30"
-                            />
+                            <Copy size={15} />
                           )}
                         </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* COMMUNITY VOTING */}
+      <section className="mt-14">
+        <div className="mb-6 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+          <div>
+            <p className="text-[11px] font-semibold tracking-[0.25em] text-orange-400">
+              COMMUNITY VOTING
+            </p>
+
+            <h2 className="mt-2 text-3xl font-semibold text-white">
+              Vote for projects
+            </h2>
+
+            <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-white/50">
+              Explore submitted projects and cast your community vote.
+              Project order is randomized to reduce ordering bias.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={loadVotingData}
+            disabled={votingLoading}
+            className="flex items-center justify-center gap-2 border border-white/15 px-4 py-3 text-[11px] font-bold tracking-[0.16em] text-white transition hover:border-orange-400 hover:text-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RefreshCw
+              size={14}
+              className={votingLoading ? "animate-spin" : ""}
+            />
+            REFRESH PROJECTS
+          </button>
+        </div>
+
+        {votingLoading && projects.length === 0 ? (
+          <div className="border border-white/15 p-8">
+            <p className="text-sm font-semibold text-white/50">
+              Loading projects...
+            </p>
+          </div>
+        ) : projects.length === 0 ? (
+          <div className="border border-white/15 p-8">
+            <p className="text-lg font-semibold text-white">
+              No submitted projects
+            </p>
+
+            <p className="mt-2 text-sm font-medium text-white/50">
+              Submitted projects will appear here when they are available.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {projects.map((project) => {
+              const voting = project.voting || {};
+              const projectComments =
+                comments[project.id] || project.comments || [];
+
+              const votingOpen = Boolean(voting.votingOpen);
+              const hasVoted = Boolean(voting.hasVoted);
+
+              return (
+                <article
+                  key={project.id}
+                  className="border border-white/15 bg-[#151310] p-6"
+                >
+                  <div className="flex flex-col justify-between gap-6 lg:flex-row">
+                    <div className="max-w-3xl">
+                      <p className="text-[10px] font-semibold tracking-[0.2em] text-white/40">
+                        PROJECT
+                      </p>
+
+                      <h3 className="mt-2 text-2xl font-semibold text-white">
+                        {project.title}
+                      </h3>
+
+                      <p className="mt-1 text-sm font-semibold text-orange-400">
+                        {project.team_name ||
+                          project.team ||
+                          "Unknown team"}
+                      </p>
+
+                      {project.tagline && (
+                        <p className="mt-4 text-base font-medium text-white/75">
+                          {project.tagline}
+                        </p>
+                      )}
+
+                      {project.description && (
+                        <p className="mt-3 text-sm font-medium leading-6 text-white/50">
+                          {project.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex shrink-0 flex-col gap-3 lg:min-w-[170px] lg:items-end">
+                      {votingOpen ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            hasVoted
+                              ? handleRemoveVote(project.id)
+                              : handleVote(project.id)
+                          }
+                          disabled={votingLoading}
+                          className={`flex items-center justify-center gap-2 border px-5 py-3 text-[11px] font-bold tracking-[0.16em] transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                            hasVoted
+                              ? "border-orange-400 bg-orange-400 text-black hover:bg-orange-300"
+                              : "border-white/20 text-white hover:border-orange-400 hover:text-orange-400"
+                          }`}
+                        >
+                          <Vote size={15} />
+
+                          {hasVoted ? "REMOVE VOTE" : "VOTE"}
+                        </button>
+                      ) : (
+                        <span className="text-[11px] font-bold tracking-[0.16em] text-white/40">
+                          VOTING CLOSED
+                        </span>
+                      )}
+
+                      <span className="text-xs font-semibold text-white/45">
+                        {voting.voteCount === null ||
+                        voting.hideVotingResults
+                          ? "VOTES HIDDEN"
+                          : `${voting.voteCount || 0} ${
+                              voting.voteCount === 1 ? "vote" : "votes"
+                            }`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 border-t border-white/10 pt-5">
+                    <button
+                      type="button"
+                      onClick={() => toggleComments(project.id)}
+                      className="flex items-center gap-2 text-[11px] font-bold tracking-[0.16em] text-white/55 transition hover:text-orange-400"
+                    >
+                      <MessageSquare size={14} />
+
+                      {commentOpen[project.id]
+                        ? "HIDE COMMENTS"
+                        : "VIEW COMMENTS"}
+                    </button>
+
+                    {commentOpen[project.id] && (
+                      <div className="mt-5">
+                        <div className="space-y-3">
+                          {projectComments.length === 0 ? (
+                            <p className="text-sm font-medium text-white/40">
+                              No comments yet.
+                            </p>
+                          ) : (
+                            projectComments.map((comment, index) => (
+                              <div
+                                key={
+                                  comment.id ||
+                                  `${project.id}-comment-${index}`
+                                }
+                                className="border border-white/10 bg-[#0f0e0c] p-4"
+                              >
+                                <div className="flex justify-between gap-4">
+                                  <span className="text-xs font-semibold text-white/70">
+                                    {comment.user_name ||
+                                      comment.user ||
+                                      "Community member"}
+                                  </span>
+
+                                  {comment.created_at && (
+                                    <span className="text-[10px] font-medium text-white/30">
+                                      {new Date(
+                                        comment.created_at
+                                      ).toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <p className="mt-2 text-sm font-medium leading-6 text-white/55">
+                                  {comment.comment}
+                                </p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                          <input
+                            value={commentText[project.id] || ""}
+                            onChange={(event) =>
+                              handleCommentChange(
+                                project.id,
+                                event.target.value
+                              )
+                            }
+                            maxLength={1000}
+                            placeholder="Add a comment..."
+                            className="flex-1 border border-white/15 bg-[#0f0e0c] px-4 py-3 text-sm font-medium text-white outline-none placeholder:text-white/30"
+                          />
+
+                        <button
+                          type="button"
+                          onClick={() => handleAddComment(project.id)}
+                          disabled={Boolean(commentLoading[project.id])}
+                          className="border border-white/20 px-5 py-3 text-[11px] font-bold tracking-[0.16em] text-white transition hover:border-orange-400 hover:text-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {commentLoading[project.id]
+                            ? "POSTING..."
+                            : "ADD COMMENT"}
+                        </button>
+                        </div>
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </>
-      )}
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
