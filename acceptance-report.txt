@@ -1,0 +1,568 @@
+# RAPTOROS — ACCEPTANCE REPORT
+
+Project:
+RaptorOS — Open-Source Hackathon Management Platform
+
+Repository:
+https://github.com/Muskanmulani/RaptorOS
+
+Status:
+SUBMISSION READY
+
+Test Environment:
+
+* Docker Compose
+* PostgreSQL 16
+* Node.js 20
+* React + Vite frontend
+* REST API backend
+* Local self-hosted deployment
+
+Requirement:
+The platform must start using Docker Compose with a working seeded hackathon.
+
+Test:
+
+1. Ran `docker compose down -v`
+2. Ran `docker compose up -d --build`
+3. Verified PostgreSQL became healthy.
+4. Verified RaptorOS server started successfully.
+5. Verified `/api/health`.
+6. Verified seeded event and related data.
+
+Result:
+PASS
+
+Verified:
+
+* RaptorOS Demo Hackathon
+* 3 tracks
+* 3 prizes
+* 1 team
+* 1 project
+* Seeded users and roles
+
+==================================================
+2. AUTHENTICATION & ROLE-BASED ACCESS
+=====================================
+
+Requirement:
+Users must authenticate and access functionality according to their role.
+
+Result:
+PASS
+
+Verified roles:
+
+* Admin
+* Organizer
+* Judge
+* Participant
+
+Verified:
+
+* Protected routes
+* Role-specific navigation
+* Unauthorized route redirection
+* Role-specific dashboards and functionality
+
+==================================================
+3. EVENT MANAGEMENT
+===================
+
+Requirement:
+Organizers must be able to create and configure hackathon events.
+
+Result:
+PASS
+
+Verified:
+
+* Event creation
+* Event name
+* Event dates
+* Event status
+* Tracks
+* Prizes
+
+Seeded Demo Event:
+RaptorOS Demo Hackathon
+
+Note:
+The seeded event remains available for immediate evaluation after Docker startup.
+New event creation is also supported separately.
+
+==================================================
+4. TEAM MANAGEMENT
+==================
+
+Requirement:
+Participants must be able to create and join teams.
+
+Result:
+PASS
+
+Verified:
+
+* Create team
+* Join team using invite code
+* View teams belonging to the participant
+* Event-specific team membership
+* Duplicate team membership protection
+* Team audit logging
+
+Team creation request uses the backend-compatible `event_id` field.
+
+==================================================
+5. PROJECTS & SUBMISSIONS
+=========================
+
+Requirement:
+Teams must be able to create projects and submit project information.
+
+Result:
+PASS
+
+Verified:
+
+* Project creation
+* Project ownership through teams
+* Project submission
+* Project status
+* Public project gallery
+
+Verified Demo Project:
+EcoRoute
+Team: Team Nova
+Status: SUBMITTED
+
+==================================================
+6. JUDGE MANAGEMENT
+===================
+
+Requirement:
+Organizers must be able to manage judges and judging assignments.
+
+Result:
+PASS
+
+Verified:
+
+* Judge management
+* Project assignments
+* Judge isolation
+* Multiple judges
+* Assignment tracking
+* Judging completion tracking
+
+==================================================
+7. RUBRICS & SCORING
+====================
+
+Requirement:
+Judges must score projects using configurable rubrics and criteria.
+
+Result:
+PASS
+
+Verified:
+
+* Rubric configuration
+* Criteria
+* Criterion weights
+* Raw scoring
+* Weighted scoring
+* Multiple judge scoring
+* Score completion tracking
+* Normalization
+
+Verified Demo Score:
+Technical Depth: 8/10
+Innovation: 9/10
+Impact: 8/10
+Execution: 9/10
+
+Weighted Score:
+84.50
+
+==================================================
+8. JEV — JUDGE EVALUATION VERIFICATION
+======================================
+
+Requirement:
+The platform should provide evidence-based judging assistance while keeping the final decision with the human judge.
+
+Result:
+PASS
+
+Verified:
+
+* Project evidence indexing
+* Evidence retrieval
+* Criterion-specific evidence analysis
+* Existing score context
+* Evidence relevance
+* Potential concern detection
+* Human decision requirement
+
+JEV is assistive and does not automatically make the final judging decision.
+
+==================================================
+9. RETRIEVAL-AUGMENTED EVIDENCE SYSTEM
+======================================
+
+Requirement:
+Relevant project evidence should be retrievable for judging.
+
+Result:
+PASS
+
+Verified:
+
+* Project description indexing
+* Project README indexing
+* Text chunking
+* Custom 128-dimensional embeddings
+* Cosine similarity retrieval
+* Top-K evidence retrieval
+* Criterion-specific retrieval
+
+Implementation:
+RaptorOS uses a lightweight custom embedding and cosine-similarity retrieval system.
+
+Note:
+This implementation does not depend on an external vector database or external embedding API.
+
+==================================================
+10. EXPLAIN SCORE
+=================
+
+Requirement:
+Judges should be able to understand how a score was produced.
+
+Result:
+PASS
+
+Verified:
+
+* Criterion score
+* Criterion weight
+* Score contribution
+* Total weighted score
+* Supporting evidence
+* Human decision context
+
+Verified:
+84.50 total weighted score
+
+==================================================
+11. CONTROL ROOM & NORMALIZATION
+================================
+
+Requirement:
+Organizers should have visibility into judging progress and system integrity.
+
+Result:
+PASS
+
+Verified:
+
+* Participant count
+* Assignment count
+* Project coverage
+* Judging completion
+* Normalization readiness
+* Judge conflict indicators
+* Submission status
+* Pipeline status
+
+Verified Demo State:
+
+* 1/1 projects submitted
+* 2/2 judgments completed
+* 100% judging completion
+* Normalization READY
+* No active judge conflicts
+
+==================================================
+12. JUDGING SIMULATOR
+=====================
+
+Requirement:
+The platform should provide a judging simulation capability.
+
+Result:
+PASS
+
+Verified:
+
+* Project count
+* Synthetic scoring
+* Judge-level score variation
+* Mean and peak score calculations
+
+Simulator results are not persisted as actual judging decisions.
+
+==================================================
+13. COMMUNITY VOTING
+====================
+
+Requirement:
+Participants should be able to vote on projects during a configured voting window.
+
+Result:
+PASS
+
+Verified:
+
+* Community voting
+* Vote creation
+* Vote removal
+* Duplicate vote protection
+* Voting window enforcement
+* Hidden voting results
+* Rate limiting
+* Voting audit logging
+* Randomized project display
+
+Note:
+Project randomization is currently performed client-side. It is not claimed as secure server-side randomization.
+
+==================================================
+14. COMMENTS
+============
+
+Requirement:
+Participants should be able to comment on projects.
+
+Result:
+PASS
+
+Verified:
+
+* View project comments
+* Add comments
+* Comment loading
+* Comment rate limiting
+* Comment audit logging
+
+==================================================
+15. AUDIT LEDGER
+================
+
+Requirement:
+Important system actions should be auditable.
+
+Result:
+PASS
+
+Verified:
+
+* Event creation logging
+* Team creation logging
+* Team joining logging
+* Voting actions
+* Judge-related actions
+* Actor identification
+* Entity identification
+* Event-linked audit records
+
+Verified Demo Ledger:
+
+* Recorded event actions
+* Actor: Alex Organizer
+* Action: EVENT CREATED
+
+==================================================
+16. WEBHOOKS
+============
+
+Requirement:
+The platform should provide webhook functionality.
+
+Result:
+PASS — API LEVEL
+
+Verified:
+
+* Create webhook
+* View event webhooks
+* View webhook deliveries
+* Create test delivery record
+* Role protection
+
+A webhook test event and delivery record were successfully created.
+
+Note:
+The test endpoint verifies creation and recording of the delivery event. It does not claim successful outbound delivery to an external service.
+
+==================================================
+17. CERTIFICATES
+================
+
+Requirement:
+The platform should provide certificate issuing and verification functionality.
+
+Result:
+PASS — API LEVEL
+
+Verified:
+
+* Certificate issuance
+* Certificate code generation
+* Certificate verification
+* Event association
+* Participant association
+
+Verified:
+Certificate verification returned `valid: true`.
+
+==================================================
+18. SIGNED JUDGE RECORDS
+========================
+
+Requirement:
+Judge records should support integrity verification.
+
+Result:
+PASS — API LEVEL
+
+Verified:
+
+* Signed judge record creation
+* Record hash
+* Digital signature
+* Record verification
+
+Verified:
+Record verification returned `valid: true`.
+
+==================================================
+19. GALLERY WIDGET
+==================
+
+Requirement:
+The platform should provide an embeddable project gallery widget.
+
+Result:
+PASS — API LEVEL
+
+Verified:
+
+* Gallery data endpoint
+* HTML gallery widget endpoint
+* Project information rendering
+* Event-specific gallery data
+
+Verified:
+Gallery widget endpoint returned HTTP 200 with HTML content.
+
+==================================================
+20. CSV IMPORT / EXPORT
+=======================
+
+Requirement:
+The platform should support bulk data workflows.
+
+Result:
+PASS — API LEVEL
+
+Verified:
+
+* Participant CSV import
+* Import job tracking
+* Judging results CSV export
+
+Verified participant import:
+
+* 1 row processed
+* 0 errors
+* Job status: completed
+
+Verified judging export:
+
+* Project rank
+* Raw average
+* Normalized average
+* Judge count
+* Judge scores
+
+==================================================
+21. REST API
+============
+
+Requirement:
+Core platform functionality should be available through REST APIs.
+
+Result:
+PASS
+
+Verified API areas:
+
+* Authentication
+* Events
+* Teams
+* Projects
+* Judging
+* Voting
+* Comments
+* JEV
+* Audit ledger
+* Webhooks
+* Certificates
+* Imports
+* Gallery widget
+
+==================================================
+22. DOCKER & SELF-HOSTING
+=========================
+
+Requirement:
+The platform must be runnable locally without depending on a hosted deployment.
+
+Result:
+PASS
+
+Verified:
+
+* Docker Compose startup
+* PostgreSQL container
+* Backend container
+* Database initialization
+* Seed data
+* Persistent database volume
+* Local frontend
+* Local REST API
+
+The platform can be started using:
+
+docker compose up -d --build
+
+No cloud deployment is required for evaluation.
+
+==================================================
+23. FINAL ACCEPTANCE SUMMARY
+============================
+
+T1 — Core Platform:
+PASS
+
+T2 — Judging System:
+PASS
+
+T3 — Community & Integrity:
+PASS
+
+T4 — Extensibility & Self-Hosting:
+PASS
+
+Overall:
+RaptorOS is ready for hackathon submission and evaluation.
+
+Known implementation caveats:
+
+1. Community project randomization is client-side rather than secure server-side randomization.
+2. Webhook test delivery records successful creation of a delivery record; it does not by itself prove external HTTP delivery.
+3. Certificates, signed judge records, CSV import/export, and the gallery widget were verified at the API level.
+4. JEV uses a lightweight custom evidence retrieval implementation with custom embeddings and cosine similarity rather than an external vector database or external embedding API.
+5. Final judging decisions remain the responsibility of human judges.
