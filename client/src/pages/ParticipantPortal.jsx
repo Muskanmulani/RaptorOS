@@ -160,7 +160,7 @@ function ParticipantPortal() {
 
     try {
       const response = await api.post("/teams", {
-        eventId: selectedEvent,
+        event_id: selectedEvent,
         name: teamName.trim()
       });
 
