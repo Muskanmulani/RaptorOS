@@ -136,6 +136,19 @@ VALUES (
     '00000000-0000-0000-0000-000000000005'
 );
 
+INSERT INTO teams (
+    id,
+    event_id,
+    name,
+    invite_code
+)
+VALUES (
+    '20000000-0000-0000-0000-000000000002',
+    '10000000-0000-0000-0000-000000000001',
+    'Team Phoenix',
+    'PHOENIX2026'
+);
+
 INSERT INTO projects (
     id,
     team_id,
@@ -155,6 +168,42 @@ VALUES (
     'A demo project showing how RaptorOS handles project submissions and judging.',
     'https://github.com/example/ecoroute',
     'https://example.com/ecoroute'
+);
+
+INSERT INTO projects (
+    id,
+    team_id,
+    track_id,
+    title,
+    tagline,
+    description,
+    repository_url,
+    demo_url
+)
+VALUES (
+    '30000000-0000-0000-0000-000000000002',
+    '20000000-0000-0000-0000-000000000002',
+    '11000000-0000-0000-0000-000000000003',
+    'CampusConnect',
+    'Connecting students with opportunities',
+    'A demo project showing how RaptorOS handles multiple projects and judge assignments.',
+    'https://github.com/example/campusconnect',
+    'https://example.com/campusconnect'
+);
+
+INSERT INTO submissions (
+    id,
+    project_id,
+    version,
+    status,
+    submitted_at
+)
+VALUES (
+    '40000000-0000-0000-0000-000000000002',
+    '30000000-0000-0000-0000-000000000002',
+    1,
+    'submitted',
+    CURRENT_TIMESTAMP - INTERVAL '1 day'
 );
 
 INSERT INTO submissions (
@@ -200,7 +249,7 @@ VALUES
 (
     '60000000-0000-0000-0000-000000000002',
     '50000000-0000-0000-0000-000000000002',
-    '30000000-0000-0000-0000-000000000001'
+    '30000000-0000-0000-0000-000000000002'
 );
 
 INSERT INTO rubrics (

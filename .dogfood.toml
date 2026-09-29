@@ -1,0 +1,19 @@
+[portal]
+base_url = "http://localhost:5000"
+
+[tiers]
+claimed = ["T1", "T2"]
+pitch = "RaptorOS is a self-hostable hackathon operating system covering event setup, team and project workflows, judge isolation, weighted scoring, normalization, voting, auditability, and decision-support evidence retrieval."
+
+[auth]
+organizer   = "Authorization: Bearer <ORGANIZER_TOKEN>"
+judge_a     = "Authorization: Bearer <JUDGE_A_TOKEN>"
+judge_b     = "Authorization: Bearer <JUDGE_B_TOKEN>"
+participant = "Authorization: Bearer <PARTICIPANT_TOKEN>"
+
+[routes]
+gallery      = "/api/projects"
+submit       = "/api/projects"
+judge_scores = "/api/judging/project/30000000-0000-0000-0000-000000000001"
+peer_scores  = "/api/judging/project/30000000-0000-0000-0000-000000000001"
+csv_export   = "/api/judging/results/10000000-0000-0000-0000-000000000001/export"
