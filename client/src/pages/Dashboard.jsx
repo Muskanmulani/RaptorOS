@@ -27,7 +27,8 @@ function Dashboard() {
 
         if (!eventId) {
           const eventsResponse = await api.get("/events");
-          const events = eventsResponse.data?.events || eventsResponse.data || [];
+          const events =
+            eventsResponse.data?.events || eventsResponse.data || [];
 
           if (events.length > 0) {
             eventId = events[0].id;
@@ -39,13 +40,17 @@ function Dashboard() {
           return;
         }
 
-        const [healthResponse, judgesResponse, assignmentsResponse, projectsResponse] =
-          await Promise.all([
-            api.get(`/health/${eventId}`),
-            api.get("/judging/judges"),
-            api.get(`/judging/assignments?eventId=${eventId}`),
-            api.get(`/projects?eventId=${eventId}&limit=50`)
-          ]);
+        const [
+          healthResponse,
+          judgesResponse,
+          assignmentsResponse,
+          projectsResponse
+        ] = await Promise.all([
+          api.get(`/health/${eventId}`),
+          api.get("/judging/judges"),
+          api.get(`/judging/assignments?eventId=${eventId}`),
+          api.get(`/projects?eventId=${eventId}&limit=50`)
+        ]);
 
         setHealth(healthResponse.data);
         setJudgeData(judgesResponse.data?.judges || []);
@@ -62,12 +67,16 @@ function Dashboard() {
   }, []);
 
   const totalProjects = health?.submissions?.totalProjects ?? 0;
-  const submittedProjects = health?.submissions?.submittedProjects ?? 0;
-  const submissionPercentage = health?.submissions?.submissionPercentage ?? 0;
+  const submittedProjects =
+    health?.submissions?.submittedProjects ?? 0;
+  const submissionPercentage =
+    health?.submissions?.submissionPercentage ?? 0;
 
   const activeJudges = health?.judging?.activeJudges ?? 0;
-  const judgingCompletion = health?.judging?.judgingCompletion ?? 0;
-  const activeConflicts = health?.integrity?.activeConflicts ?? 0;
+  const judgingCompletion =
+    health?.judging?.judgingCompletion ?? 0;
+  const activeConflicts =
+    health?.integrity?.activeConflicts ?? 0;
 
   const stats = [
     {
@@ -91,7 +100,9 @@ function Dashboard() {
     {
       code: "04",
       label: "JUDGING",
-      value: `${String(Math.round(judgingCompletion)).padStart(2, "0")}%`,
+      value: `${String(
+        Math.round(judgingCompletion)
+      ).padStart(2, "0")}%`,
       detail: "IN PROGRESS"
     }
   ];
@@ -109,7 +120,10 @@ function Dashboard() {
       code: "SIG-01",
       title: `${health?.judging?.unassignedProjects ?? 3} projects need judge coverage`,
       source: "ASSIGNMENT ENGINE",
-      level: (health?.judging?.unassignedProjects ?? 3) > 0 ? "HIGH" : "CLEAR"
+      level:
+        (health?.judging?.unassignedProjects ?? 3) > 0
+          ? "HIGH"
+          : "CLEAR"
     },
     {
       code: "SIG-02",
@@ -121,7 +135,8 @@ function Dashboard() {
       code: "SIG-03",
       title: `${activeConflicts} assignment conflict detected`,
       source: "INTEGRITY MONITOR",
-      level: activeConflicts > 0 ? "CRITICAL" : "CLEAR"
+      level:
+        activeConflicts > 0 ? "CRITICAL" : "CLEAR"
     }
   ];
 
@@ -152,8 +167,12 @@ function Dashboard() {
     };
   });
 
-  const submissionFlow = health?.submissions?.submissionPercentage ?? 87;
-  const judgingCoverage = health?.judging?.judgingCompletion ?? 74;
+  const submissionFlow =
+    health?.submissions?.submissionPercentage ?? 87;
+
+  const judgingCoverage =
+    health?.judging?.judgingCompletion ?? 74;
+
   const integrity = activeConflicts > 0 ? 0 : 100;
 
   return (
@@ -161,7 +180,7 @@ function Dashboard() {
       <CommandHeader />
 
       <section className="mb-12">
-        <p className="text-[10px] tracking-[0.3em] text-orange-500">
+        <p className="text-[11px] font-semibold tracking-[0.3em] text-orange-500">
           COMMAND / 01
         </p>
 
@@ -169,13 +188,13 @@ function Dashboard() {
           Event Overview
         </h1>
 
-        <p className="mt-4 max-w-xl text-sm leading-6 text-white/40">
-          A live operational view of submissions, judging coverage, event
-          activity, and system integrity.
+        <p className="mt-4 max-w-xl text-[15px] font-medium leading-7 text-white/50">
+          A live operational view of submissions, judging coverage,
+          event activity, and system integrity.
         </p>
 
         {loading && (
-          <p className="mt-3 font-mono text-[9px] tracking-[0.2em] text-orange-500/50">
+          <p className="mt-3 font-mono text-[10px] font-medium tracking-[0.2em] text-orange-500/60">
             SYNCHRONIZING EVENT DATA...
           </p>
         )}
@@ -188,7 +207,7 @@ function Dashboard() {
             className="group border-b border-r border-white/10 p-6 transition duration-300 hover:bg-orange-500/[0.025]"
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] text-white/20">
+              <span className="font-mono text-[11px] font-semibold text-white/30">
                 {stat.code}
               </span>
 
@@ -200,15 +219,15 @@ function Dashboard() {
               />
             </div>
 
-            <p className="mt-8 text-[10px] tracking-[0.2em] text-white/30">
+            <p className="mt-8 text-[11px] font-semibold tracking-[0.2em] text-white/40">
               {stat.label}
             </p>
 
-            <p className="mt-2 font-mono text-4xl tracking-tight text-[#f4efe6]">
+            <p className="mt-2 font-mono text-4xl font-medium tracking-tight text-[#f4efe6]">
               {stat.value}
             </p>
 
-            <p className="mt-3 text-[10px] tracking-wider text-orange-500/70">
+            <p className="mt-3 text-[11px] font-semibold tracking-wider text-orange-500/80">
               {stat.detail}
             </p>
           </div>
@@ -230,11 +249,11 @@ function Dashboard() {
 
           <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-5">
             <div>
-              <p className="text-[10px] tracking-[0.25em] text-orange-500">
+              <p className="text-[11px] font-semibold tracking-[0.25em] text-orange-500">
                 EVENT PULSE
               </p>
 
-              <h2 className="mt-2 text-xl font-medium">
+              <h2 className="mt-2 text-xl font-semibold">
                 Live Activity Field
               </h2>
             </div>
@@ -242,7 +261,7 @@ function Dashboard() {
             <div className="flex items-center gap-2 border border-orange-500/20 px-3 py-1.5">
               <Radio size={13} className="text-orange-500" />
 
-              <span className="text-[9px] tracking-[0.18em] text-orange-500">
+              <span className="text-[10px] font-semibold tracking-[0.18em] text-orange-500">
                 LIVE
               </span>
             </div>
@@ -346,9 +365,11 @@ function Dashboard() {
                   key={index}
                   className={`absolute ${node.className} h-2.5 w-2.5 rounded-full bg-orange-500`}
                   style={{
-                    animation: "raptorPulse 1.8s ease-in-out infinite",
+                    animation:
+                      "raptorPulse 1.8s ease-in-out infinite",
                     animationDelay: node.delay,
-                    boxShadow: "0 0 0 5px rgba(249,115,22,0.08)"
+                    boxShadow:
+                      "0 0 0 5px rgba(249,115,22,0.08)"
                   }}
                 />
               ))}
@@ -364,14 +385,16 @@ function Dashboard() {
                 <div
                   className="absolute inset-3 rounded-full border border-orange-500/20"
                   style={{
-                    animation: "corePulse 2.4s ease-out infinite 0.8s"
+                    animation:
+                      "corePulse 2.4s ease-out infinite 0.8s"
                   }}
                 />
 
                 <div
                   className="absolute inset-7 rounded-full border border-orange-500/30"
                   style={{
-                    animation: "corePulse 2.4s ease-out infinite 1.6s"
+                    animation:
+                      "corePulse 2.4s ease-out infinite 1.6s"
                   }}
                 />
 
@@ -395,13 +418,16 @@ function Dashboard() {
               </div>
 
               <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-center">
-                <Zap size={14} className="mx-auto text-[#f4efe6]" />
+                <Zap
+                  size={14}
+                  className="mx-auto text-[#f4efe6]"
+                />
 
-                <p className="mt-1 font-mono text-lg text-[#f4efe6]">
+                <p className="mt-1 font-mono text-lg font-medium text-[#f4efe6]">
                   CORE
                 </p>
 
-                <p className="text-[7px] tracking-[0.2em] text-orange-500">
+                <p className="text-[8px] font-semibold tracking-[0.2em] text-orange-500">
                   ONLINE
                 </p>
               </div>
@@ -410,31 +436,31 @@ function Dashboard() {
 
           <div className="relative z-10 grid grid-cols-3 border-t border-white/10">
             <div className="border-r border-white/10 px-3 pt-4">
-              <p className="text-[9px] tracking-wider text-white/30">
+              <p className="text-[10px] font-semibold tracking-wider text-white/40">
                 SUBMISSION FLOW
               </p>
 
-              <p className="mt-1 font-mono text-lg">
+              <p className="mt-1 font-mono text-lg font-medium">
                 {submissionFlow}%
               </p>
             </div>
 
             <div className="border-r border-white/10 px-3 pt-4">
-              <p className="text-[9px] tracking-wider text-white/30">
+              <p className="text-[10px] font-semibold tracking-wider text-white/40">
                 JUDGING COVERAGE
               </p>
 
-              <p className="mt-1 font-mono text-lg">
+              <p className="mt-1 font-mono text-lg font-medium">
                 {judgingCoverage}%
               </p>
             </div>
 
             <div className="px-3 pt-4">
-              <p className="text-[9px] tracking-wider text-white/30">
+              <p className="text-[10px] font-semibold tracking-wider text-white/40">
                 INTEGRITY
               </p>
 
-              <p className="mt-1 font-mono text-lg text-orange-500">
+              <p className="mt-1 font-mono text-lg font-medium text-orange-500">
                 {integrity}%
               </p>
             </div>
@@ -444,20 +470,23 @@ function Dashboard() {
         <div className="relative overflow-hidden border border-white/10 bg-[#151310]">
           <div className="relative z-10 flex items-center justify-between border-b border-white/10 p-6">
             <div className="flex items-center gap-3">
-              <AlertTriangle size={17} className="text-orange-500" />
+              <AlertTriangle
+                size={17}
+                className="text-orange-500"
+              />
 
               <div>
-                <p className="text-[10px] tracking-[0.25em] text-orange-500">
+                <p className="text-[11px] font-semibold tracking-[0.25em] text-orange-500">
                   SYSTEM SIGNALS
                 </p>
 
-                <h2 className="mt-1 text-lg font-medium">
+                <h2 className="mt-1 text-lg font-semibold">
                   Attention Required
                 </h2>
               </div>
             </div>
 
-            <span className="font-mono text-[9px] text-white/20">
+            <span className="font-mono text-[10px] font-medium text-white/25">
               03 ACTIVE
             </span>
           </div>
@@ -475,7 +504,8 @@ function Dashboard() {
                 <div
                   className="absolute left-0 top-0 h-full w-[2px] bg-orange-500"
                   style={{
-                    animation: "signalBar 2.5s ease-in-out infinite",
+                    animation:
+                      "signalBar 2.5s ease-in-out infinite",
                     animationDelay: `${index * 0.3}s`
                   }}
                 />
@@ -486,7 +516,8 @@ function Dashboard() {
                       <span
                         className="block h-2 w-2 rounded-full bg-orange-500"
                         style={{
-                          animation: "statusPulse 1.6s ease-in-out infinite"
+                          animation:
+                            "statusPulse 1.6s ease-in-out infinite"
                         }}
                       />
 
@@ -495,20 +526,20 @@ function Dashboard() {
 
                     <div>
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-[9px] text-white/20">
+                        <span className="font-mono text-[10px] font-semibold text-white/25">
                           {signal.code}
                         </span>
 
-                        <span className="text-[8px] tracking-[0.18em] text-orange-500/70">
+                        <span className="text-[9px] font-semibold tracking-[0.18em] text-orange-500/80">
                           {signal.level}
                         </span>
                       </div>
 
-                      <p className="mt-2 text-sm text-white/70 transition group-hover:text-white">
+                      <p className="mt-2 text-[15px] font-medium text-white/75 transition group-hover:text-white">
                         {signal.title}
                       </p>
 
-                      <p className="mt-1 text-[9px] tracking-[0.16em] text-white/25">
+                      <p className="mt-1 text-[10px] font-medium tracking-[0.16em] text-white/30">
                         {signal.source}
                       </p>
                     </div>
@@ -524,7 +555,8 @@ function Dashboard() {
                   <div
                     className="h-px w-1/3 bg-orange-500/40"
                     style={{
-                      animation: "signalScan 2.8s ease-in-out infinite",
+                      animation:
+                        "signalScan 2.8s ease-in-out infinite",
                       animationDelay: `${index * 0.4}s`
                     }}
                   />
@@ -535,7 +567,7 @@ function Dashboard() {
 
           <div className="relative z-10 border-t border-white/10 px-5 py-4">
             <div className="flex items-center justify-between">
-              <span className="text-[9px] tracking-[0.18em] text-white/25">
+              <span className="text-[10px] font-semibold tracking-[0.18em] text-white/30">
                 MONITORING ENGINE
               </span>
 
@@ -543,11 +575,12 @@ function Dashboard() {
                 <span
                   className="h-1.5 w-1.5 rounded-full bg-orange-500"
                   style={{
-                    animation: "statusPulse 1.5s ease-in-out infinite"
+                    animation:
+                      "statusPulse 1.5s ease-in-out infinite"
                   }}
                 />
 
-                <span className="font-mono text-[9px] text-orange-500">
+                <span className="font-mono text-[10px] font-semibold text-orange-500">
                   ACTIVE
                 </span>
               </div>
@@ -559,15 +592,15 @@ function Dashboard() {
       <section className="mt-6 overflow-hidden border border-white/10 bg-[#151310]">
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
           <div>
-            <p className="text-[10px] tracking-[0.25em] text-orange-500">
+            <p className="text-[11px] font-semibold tracking-[0.25em] text-orange-500">
               JUDGING NETWORK
             </p>
 
-            <h2 className="mt-2 text-xl font-medium">
+            <h2 className="mt-2 text-xl font-semibold">
               Assignment Topology
             </h2>
 
-            <p className="mt-1 text-xs text-white/30">
+            <p className="mt-1 text-sm font-medium text-white/40">
               Live judge workload and project coverage
             </p>
           </div>
@@ -575,14 +608,16 @@ function Dashboard() {
           <div className="hidden items-center gap-5 md:flex">
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
-              <span className="text-[9px] tracking-wider text-white/30">
+
+              <span className="text-[10px] font-semibold tracking-wider text-white/35">
                 ACTIVE
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="h-px w-5 bg-orange-500/40" />
-              <span className="text-[9px] tracking-wider text-white/30">
+
+              <span className="text-[10px] font-semibold tracking-wider text-white/35">
                 ASSIGNED
               </span>
             </div>
@@ -593,15 +628,18 @@ function Dashboard() {
           <div className="border-b border-white/10 p-6 lg:border-b-0 lg:border-r">
             <div className="mb-6 flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center border border-orange-500/20">
-                <Gavel size={15} className="text-orange-500" />
+                <Gavel
+                  size={15}
+                  className="text-orange-500"
+                />
               </div>
 
               <div>
-                <p className="text-[9px] tracking-[0.2em] text-white/30">
+                <p className="text-[10px] font-semibold tracking-[0.2em] text-white/35">
                   JUDGES
                 </p>
 
-                <p className="font-mono text-xs text-white/60">
+                <p className="font-mono text-sm font-medium text-white/65">
                   {String(activeJudges).padStart(2, "0")} ACTIVE NODES
                 </p>
               </div>
@@ -613,7 +651,8 @@ function Dashboard() {
                   key={judge.id}
                   className="group border border-white/10 p-4 transition duration-300 hover:border-orange-500/30 hover:bg-orange-500/[0.025]"
                   style={{
-                    animation: "networkEntry 0.6s ease-out both",
+                    animation:
+                      "networkEntry 0.6s ease-out both",
                     animationDelay: `${index * 0.1}s`
                   }}
                 >
@@ -626,32 +665,33 @@ function Dashboard() {
                             judge.status === "ACTIVE"
                               ? "statusPulse 1.8s ease-in-out infinite"
                               : "none",
-                          opacity: judge.status === "ACTIVE" ? 1 : 0.25
+                          opacity:
+                            judge.status === "ACTIVE" ? 1 : 0.25
                         }}
                       />
 
                       <div>
-                        <p className="text-sm text-white/70">
+                        <p className="text-[15px] font-medium text-white/75">
                           {judge.name}
                         </p>
 
-                        <p className="font-mono text-[8px] text-white/20">
+                        <p className="font-mono text-[9px] font-medium text-white/25">
                           {judge.id}
                         </p>
                       </div>
                     </div>
 
-                    <span className="text-[8px] tracking-wider text-white/25">
+                    <span className="text-[9px] font-semibold tracking-wider text-white/30">
                       {judge.status}
                     </span>
                   </div>
 
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-[8px] tracking-wider text-white/25">
+                    <span className="text-[9px] font-semibold tracking-wider text-white/30">
                       WORKLOAD
                     </span>
 
-                    <span className="font-mono text-[10px] text-white/50">
+                    <span className="font-mono text-[11px] font-medium text-white/55">
                       {judge.load}%
                     </span>
                   </div>
@@ -661,17 +701,18 @@ function Dashboard() {
                       className="h-full bg-orange-500/70"
                       style={{
                         width: `${judge.load}%`,
-                        animation: "loadReveal 1.2s ease-out both"
+                        animation:
+                          "loadReveal 1.2s ease-out both"
                       }}
                     />
                   </div>
 
                   <div className="mt-3 flex justify-between">
-                    <span className="text-[8px] text-white/20">
+                    <span className="text-[9px] font-semibold text-white/25">
                       ASSIGNED PROJECTS
                     </span>
 
-                    <span className="font-mono text-[9px] text-orange-500/70">
+                    <span className="font-mono text-[10px] font-medium text-orange-500/80">
                       {judge.projects}
                     </span>
                   </div>
@@ -697,7 +738,8 @@ function Dashboard() {
                 <div
                   className="h-3 w-3 rounded-full bg-orange-500"
                   style={{
-                    animation: "statusPulse 1.8s ease-in-out infinite"
+                    animation:
+                      "statusPulse 1.8s ease-in-out infinite"
                   }}
                 />
               </div>
@@ -706,7 +748,8 @@ function Dashboard() {
                 <div
                   className="h-3 w-3 rounded-full bg-orange-500"
                   style={{
-                    animation: "statusPulse 1.8s ease-in-out infinite 0.3s"
+                    animation:
+                      "statusPulse 1.8s ease-in-out infinite 0.3s"
                   }}
                 />
               </div>
@@ -715,7 +758,8 @@ function Dashboard() {
                 <div
                   className="h-3 w-3 rounded-full bg-orange-500"
                   style={{
-                    animation: "statusPulse 1.8s ease-in-out infinite 0.6s"
+                    animation:
+                      "statusPulse 1.8s ease-in-out infinite 0.6s"
                   }}
                 />
               </div>
@@ -836,11 +880,11 @@ function Dashboard() {
                     </div>
 
                     <div>
-                      <p className="text-xs text-white/60">
+                      <p className="text-[13px] font-medium text-white/65">
                         {project.name}
                       </p>
 
-                      <p className="font-mono text-[8px] text-white/20">
+                      <p className="font-mono text-[9px] font-medium text-white/25">
                         {project.id}
                       </p>
                     </div>
@@ -852,11 +896,15 @@ function Dashboard() {
                 <div
                   className="flex h-16 w-16 items-center justify-center rounded-full border border-orange-500/20"
                   style={{
-                    animation: "networkCore 2.5s ease-in-out infinite"
+                    animation:
+                      "networkCore 2.5s ease-in-out infinite"
                   }}
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-500/10">
-                    <Activity size={15} className="text-orange-500" />
+                    <Activity
+                      size={15}
+                      className="text-orange-500"
+                    />
                   </div>
                 </div>
               </div>
@@ -866,15 +914,18 @@ function Dashboard() {
           <div className="p-6">
             <div className="mb-6 flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center border border-orange-500/20">
-                <FolderKanban size={15} className="text-orange-500" />
+                <FolderKanban
+                  size={15}
+                  className="text-orange-500"
+                />
               </div>
 
               <div>
-                <p className="text-[9px] tracking-[0.2em] text-white/30">
+                <p className="text-[10px] font-semibold tracking-[0.2em] text-white/35">
                   PROJECTS
                 </p>
 
-                <p className="font-mono text-xs text-white/60">
+                <p className="font-mono text-sm font-medium text-white/65">
                   COVERAGE MATRIX
                 </p>
               </div>
@@ -886,36 +937,37 @@ function Dashboard() {
                   key={project.id}
                   className="border border-white/10 p-4 transition duration-300 hover:border-orange-500/30 hover:bg-orange-500/[0.025]"
                   style={{
-                    animation: "networkEntry 0.6s ease-out both",
+                    animation:
+                      "networkEntry 0.6s ease-out both",
                     animationDelay: `${index * 0.12}s`
                   }}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-white/70">
+                      <p className="text-[15px] font-medium text-white/75">
                         {project.name}
                       </p>
 
-                      <p className="font-mono text-[8px] text-white/20">
+                      <p className="font-mono text-[9px] font-medium text-white/25">
                         {project.id}
                       </p>
                     </div>
 
-                    <span className="font-mono text-sm text-white/50">
+                    <span className="font-mono text-sm font-medium text-white/55">
                       {project.score}
                     </span>
                   </div>
 
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-[8px] tracking-wider text-white/25">
+                    <span className="text-[9px] font-semibold tracking-wider text-white/30">
                       JUDGE COVERAGE
                     </span>
 
                     <span
-                      className={`font-mono text-[9px] ${
+                      className={`font-mono text-[10px] font-medium ${
                         project.coverage === "3/3"
                           ? "text-orange-500"
-                          : "text-white/50"
+                          : "text-white/55"
                       }`}
                     >
                       {project.coverage}
@@ -931,7 +983,9 @@ function Dashboard() {
                         <div
                           key={slot}
                           className={`h-1 flex-1 ${
-                            filled ? "bg-orange-500/70" : "bg-white/5"
+                            filled
+                              ? "bg-orange-500/70"
+                              : "bg-white/5"
                           }`}
                         />
                       );
@@ -943,7 +997,7 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-[9px] tracking-[0.18em] text-white/20">
+        <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-[10px] font-semibold tracking-[0.18em] text-white/25">
           <span>JUDGING ENGINE / TOPOLOGY ACTIVE</span>
 
           <span className="flex items-center gap-2">

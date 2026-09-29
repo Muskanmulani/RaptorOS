@@ -144,29 +144,29 @@ function JudgingSimulator() {
       <section className="mb-10">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
-            <p className="text-[10px] tracking-[0.3em] text-orange-500">
+            <p className="text-[11px] font-semibold tracking-[0.3em] text-orange-400">
               JUDGING / SIMULATION
             </p>
 
-            <h1 className="mt-3 text-5xl font-semibold tracking-tight">
+            <h1 className="mt-3 text-5xl font-bold tracking-tight text-white">
               Judging Simulator
             </h1>
 
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/40">
+            <p className="mt-4 max-w-2xl text-base font-medium leading-6 text-white/60">
               Stress-test judge allocation, workload balancing, and scoring
               behavior before running a live judging round.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 border border-white/10 bg-[#151310] px-4 py-3">
-            <Activity size={14} className="text-orange-500" />
+          <div className="flex items-center gap-3 border border-white/15 bg-[#151310] px-4 py-3">
+            <Activity size={15} className="text-orange-400" />
 
             <div>
-              <p className="text-[9px] tracking-[0.2em] text-white/20">
+              <p className="text-[10px] font-semibold tracking-[0.2em] text-white/45">
                 SIMULATION TARGET
               </p>
 
-              <p className="mt-1 text-xs text-white/60">
+              <p className="mt-1 text-sm font-medium text-white/70">
                 {loading
                   ? "LOADING EVENT..."
                   : eventName || "RaptorOS Event"}
@@ -177,28 +177,28 @@ function JudgingSimulator() {
       </section>
 
       {error && (
-        <div className="mb-8 flex items-center gap-3 border border-red-500/20 bg-red-500/[0.04] px-6 py-4">
-          <AlertCircle size={16} className="text-red-400" />
+        <div className="mb-8 flex items-center gap-3 border border-red-500/25 bg-red-500/[0.05] px-6 py-4">
+          <AlertCircle size={17} className="text-red-400" />
 
-          <p className="text-sm text-red-300">
+          <p className="text-sm font-semibold text-red-300">
             {error}
           </p>
         </div>
       )}
 
-      <section className="mb-8 grid gap-px border border-white/10 bg-white/10 md:grid-cols-[1fr_220px_180px]">
+      <section className="mb-8 grid gap-px border border-white/15 bg-white/10 md:grid-cols-[1fr_220px_180px]">
         <div className="bg-[#151310] p-6">
           <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 items-center justify-center border border-orange-500/30 text-orange-500">
-              <Scale size={17} />
+            <div className="flex h-10 w-10 items-center justify-center border border-orange-500/30 text-orange-400">
+              <Scale size={18} />
             </div>
 
             <div>
-              <p className="text-[10px] tracking-[0.2em] text-white/30">
+              <p className="text-[11px] font-semibold tracking-[0.2em] text-white/50">
                 SIMULATION ENGINE
               </p>
 
-              <p className="mt-2 text-sm text-white/60">
+              <p className="mt-2 text-sm font-medium text-white/70">
                 Balanced judge assignment with randomized rubric scoring.
               </p>
             </div>
@@ -206,7 +206,7 @@ function JudgingSimulator() {
         </div>
 
         <div className="bg-[#151310] p-6">
-          <label className="text-[10px] tracking-[0.2em] text-white/30">
+          <label className="text-[11px] font-semibold tracking-[0.2em] text-white/50">
             JUDGES / PROJECT
           </label>
 
@@ -220,7 +220,7 @@ function JudgingSimulator() {
                 )
               )
             }
-            className="mt-3 w-full border border-white/10 bg-[#11100e] px-3 py-2 text-sm text-white/70 outline-none focus:border-orange-500/50"
+            className="mt-3 w-full border border-white/15 bg-[#11100e] px-3 py-2 text-sm font-medium text-white/75 outline-none focus:border-orange-500/50"
           >
             <option value={1}>1 JUDGE</option>
             <option value={2}>2 JUDGES</option>
@@ -235,16 +235,16 @@ function JudgingSimulator() {
             type="button"
             onClick={runSimulation}
             disabled={loading || running}
-            className="flex min-h-[44px] w-full items-center justify-center gap-2 bg-orange-500 px-4 py-3 text-[10px] font-semibold tracking-[0.15em] text-black transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex min-h-[44px] w-full items-center justify-center gap-2 bg-orange-500 px-4 py-3 text-[11px] font-bold tracking-[0.15em] text-black transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {running ? (
               <>
-                <RefreshCw size={14} className="animate-spin" />
+                <RefreshCw size={15} className="animate-spin" />
                 SIMULATING
               </>
             ) : (
               <>
-                <Play size={14} />
+                <Play size={15} />
                 RUN SIMULATION
               </>
             )}
@@ -255,15 +255,15 @@ function JudgingSimulator() {
       {!result && !running && (
         <section className="border border-white/10 bg-[#151310] p-12 text-center">
           <Gauge
-            size={34}
-            className="mx-auto text-white/20"
+            size={35}
+            className="mx-auto text-white/35"
           />
 
-          <h2 className="mt-5 text-lg font-medium text-white/70">
+          <h2 className="mt-5 text-xl font-semibold text-white/80">
             Simulation ready
           </h2>
 
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-white/30">
+          <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-6 text-white/50">
             Configure the number of judges assigned to each project, then
             run a simulated judging round.
           </p>
@@ -273,15 +273,15 @@ function JudgingSimulator() {
       {running && (
         <section className="border border-orange-500/20 bg-orange-500/[0.03] p-10 text-center">
           <RefreshCw
-            size={28}
-            className="mx-auto animate-spin text-orange-500"
+            size={29}
+            className="mx-auto animate-spin text-orange-400"
           />
 
-          <p className="mt-5 text-[10px] tracking-[0.25em] text-orange-500">
+          <p className="mt-5 text-[11px] font-semibold tracking-[0.25em] text-orange-400">
             RUNNING JUDGING SIMULATION
           </p>
 
-          <p className="mt-2 text-sm text-white/30">
+          <p className="mt-2 text-sm font-medium text-white/50">
             Generating assignments and rubric scores...
           </p>
         </section>
@@ -289,43 +289,43 @@ function JudgingSimulator() {
 
       {result && !running && (
         <>
-          <section className="mb-8 grid gap-px border border-white/10 bg-white/10 md:grid-cols-4">
+          <section className="mb-8 grid gap-px border border-white/15 bg-white/10 md:grid-cols-4">
             <div className="bg-[#151310] p-6">
-              <p className="text-[10px] tracking-[0.2em] text-white/30">
+              <p className="text-[11px] font-semibold tracking-[0.2em] text-white/50">
                 PROJECTS
               </p>
 
-              <p className="mt-3 font-mono text-3xl">
+              <p className="mt-3 font-mono text-3xl font-semibold text-white">
                 {String(result.projectCount).padStart(2, "0")}
               </p>
             </div>
 
             <div className="bg-[#151310] p-6">
-              <p className="text-[10px] tracking-[0.2em] text-white/30">
+              <p className="text-[11px] font-semibold tracking-[0.2em] text-white/50">
                 ASSIGNMENTS
               </p>
 
-              <p className="mt-3 font-mono text-3xl text-orange-500">
+              <p className="mt-3 font-mono text-3xl font-semibold text-orange-400">
                 {String(result.assignmentCount).padStart(2, "0")}
               </p>
             </div>
 
             <div className="bg-[#151310] p-6">
-              <p className="text-[10px] tracking-[0.2em] text-white/30">
+              <p className="text-[11px] font-semibold tracking-[0.2em] text-white/50">
                 MEAN SCORE
               </p>
 
-              <p className="mt-3 font-mono text-3xl">
+              <p className="mt-3 font-mono text-3xl font-semibold text-white">
                 {averageScore.toFixed(2)}
               </p>
             </div>
 
             <div className="bg-[#151310] p-6">
-              <p className="text-[10px] tracking-[0.2em] text-white/30">
+              <p className="text-[11px] font-semibold tracking-[0.2em] text-white/50">
                 PEAK SCORE
               </p>
 
-              <p className="mt-3 font-mono text-3xl">
+              <p className="mt-3 font-mono text-3xl font-semibold text-white">
                 {highestScore.toFixed(2)}
               </p>
             </div>
@@ -334,9 +334,9 @@ function JudgingSimulator() {
           <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr]">
             <section>
               <div className="mb-4 flex items-center gap-3">
-                <BarChart3 size={15} className="text-orange-500" />
+                <BarChart3 size={16} className="text-orange-400" />
 
-                <p className="text-[10px] tracking-[0.25em] text-white/30">
+                <p className="text-[11px] font-semibold tracking-[0.25em] text-white/50">
                   PROJECT SCORE DISTRIBUTION
                 </p>
               </div>
@@ -358,22 +358,22 @@ function JudgingSimulator() {
                     >
                       <div className="flex flex-wrap items-center justify-between gap-4">
                         <div className="flex min-w-0 items-center gap-4">
-                          <span className="font-mono text-[10px] text-white/20">
+                          <span className="font-mono text-[11px] font-semibold text-white/40">
                             #{String(index + 1).padStart(2, "0")}
                           </span>
 
                           <div className="min-w-0">
-                            <p className="truncate text-sm text-white/70">
+                            <p className="truncate text-base font-medium text-white/80">
                               {project.projectTitle}
                             </p>
 
-                            <p className="mt-1 text-[10px] text-white/25">
+                            <p className="mt-1 text-[11px] font-semibold text-white/40">
                               {project.judges.length} judges assigned
                             </p>
                           </div>
                         </div>
 
-                        <span className="font-mono text-lg text-orange-500">
+                        <span className="font-mono text-lg font-semibold text-orange-400">
                           {Number(project.averageScore).toFixed(2)}
                         </span>
                       </div>
@@ -391,7 +391,7 @@ function JudgingSimulator() {
                         {project.judges.map((judge) => (
                           <span
                             key={`${project.projectId}-${judge.judgeId}`}
-                            className="border border-white/10 px-2 py-1 text-[9px] text-white/35"
+                            className="border border-white/10 px-2 py-1 text-[10px] font-medium text-white/50"
                           >
                             {judge.judgeName} ·{" "}
                             {Number(judge.totalScore).toFixed(2)}
@@ -406,9 +406,9 @@ function JudgingSimulator() {
 
             <section>
               <div className="mb-4 flex items-center gap-3">
-                <Users size={15} className="text-orange-500" />
+                <Users size={16} className="text-orange-400" />
 
-                <p className="text-[10px] tracking-[0.25em] text-white/30">
+                <p className="text-[11px] font-semibold tracking-[0.25em] text-white/50">
                   JUDGE WORKLOAD
                 </p>
               </div>
@@ -429,16 +429,16 @@ function JudgingSimulator() {
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <span className="font-mono text-[10px] text-white/20">
+                          <span className="font-mono text-[11px] font-semibold text-white/40">
                             J-{String(index + 1).padStart(2, "0")}
                           </span>
 
-                          <span className="text-sm text-white/60">
+                          <span className="text-sm font-medium text-white/70">
                             Judge {judge.judgeId}
                           </span>
                         </div>
 
-                        <span className="font-mono text-sm text-orange-500">
+                        <span className="font-mono text-sm font-semibold text-orange-400">
                           {judge.workload}
                         </span>
                       </div>
@@ -457,11 +457,11 @@ function JudgingSimulator() {
               </div>
 
               <div className="mt-6 border border-orange-500/20 bg-orange-500/[0.03] p-5">
-                <p className="text-[9px] tracking-[0.2em] text-orange-500">
+                <p className="text-[10px] font-semibold tracking-[0.2em] text-orange-400">
                   SIMULATION NOTE
                 </p>
 
-                <p className="mt-3 text-xs leading-5 text-white/40">
+                <p className="mt-3 text-sm font-medium leading-5 text-white/50">
                   Scores are synthetic and are not persisted as live
                   judgments. The simulator is intended to inspect assignment
                   balance and scoring behavior before an event run.

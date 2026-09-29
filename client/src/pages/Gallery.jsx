@@ -29,78 +29,88 @@ function Gallery() {
 
     loadProjects();
   }, []);
+
   return (
     <div>
       <CommandHeader />
 
       <section className="mb-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
         <div>
-          <p className="text-[10px] tracking-[0.3em] text-orange-500">
+          <p className="text-[11px] font-semibold tracking-[0.3em] text-orange-400">
             PROJECTS / 02
           </p>
 
-          <h1 className="mt-3 text-5xl font-semibold tracking-tight">
+          <h1 className="mt-3 text-5xl font-bold tracking-tight text-white">
             Project Explorer
           </h1>
 
-          <p className="mt-4 max-w-xl text-sm leading-6 text-white/40">
+          <p className="mt-4 max-w-xl text-base font-medium leading-6 text-white/60">
             Browse submitted projects, inspect their status, and explore the
             public event portfolio.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 border border-white/10 bg-[#151310] px-4 py-3">
-          <Search size={15} className="text-white/30" />
+        <div className="flex items-center gap-3 border border-white/15 bg-[#151310] px-4 py-3">
+          <Search size={16} className="text-white/50" />
+
           <input
             placeholder="Search projects..."
-            className="w-48 bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+            className="w-48 bg-transparent text-sm font-medium text-white outline-none placeholder:text-white/40"
           />
         </div>
       </section>
 
-      <section className="border-l border-t border-white/10">
+      <section className="border-l border-t border-white/15">
         {projects.map((project) => (
           <div
             key={project.id}
-            className="group grid border-b border-r border-white/10 p-6 transition hover:bg-white/[0.02] md:grid-cols-[70px_1.5fr_1fr_140px_100px_30px] md:items-center md:gap-6"
+            className="group grid border-b border-r border-white/15 p-6 transition hover:bg-white/[0.03] md:grid-cols-[70px_1.5fr_1fr_140px_100px_30px] md:items-center md:gap-6"
           >
-            <span className="font-mono text-xs text-white/20">
+            <span className="font-mono text-sm font-semibold text-white/45">
               {project.id}
             </span>
 
             <div>
-              <h2 className="text-xl font-medium">{project.title}</h2>
-              <p className="mt-1 text-xs text-white/30">{project.team}</p>
+              <h2 className="text-xl font-semibold text-white">
+                {project.title}
+              </h2>
+
+              <p className="mt-1 text-sm font-medium text-white/50">
+                {project.team}
+              </p>
             </div>
 
-            <span className="text-[10px] tracking-[0.15em] text-white/40">
+            <span className="text-[11px] font-semibold tracking-[0.15em] text-white/55">
               {project.category}
             </span>
 
             <span
-              className={`text-[10px] tracking-[0.15em] ${
+              className={`text-[11px] font-semibold tracking-[0.15em] ${
                 project.status === "JUDGING"
-                  ? "text-orange-500"
-                  : "text-white/30"
+                  ? "text-orange-400"
+                  : "text-white/55"
               }`}
             >
               {project.status}
             </span>
 
-            <span className="font-mono text-sm text-white/60">
+            <span className="font-mono text-base font-semibold text-white/75">
               {project.score}
             </span>
 
             <ArrowUpRight
-              size={16}
-              className="text-white/20 transition group-hover:text-orange-500"
+              size={17}
+              className="text-white/40 transition group-hover:text-orange-400"
             />
           </div>
         ))}
       </section>
 
-      <div className="mt-6 flex justify-between text-[10px] tracking-[0.2em] text-white/25">
-        <span>{String(projects.length).padStart(2, "0")} PROJECTS DISPLAYED</span>
+      <div className="mt-6 flex justify-between text-[11px] font-semibold tracking-[0.2em] text-white/45">
+        <span>
+          {String(projects.length).padStart(2, "0")} PROJECTS DISPLAYED
+        </span>
+
         <span>PUBLIC GALLERY</span>
       </div>
     </div>
