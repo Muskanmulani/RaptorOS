@@ -8,6 +8,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 function shuffleProjects(items) {
   const shuffled = [...items];
@@ -21,6 +22,7 @@ function shuffleProjects(items) {
 }
 
 function ParticipantPortal() {
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [teams, setTeams] = useState([]);
   const [projects, setProjects] = useState([]);
